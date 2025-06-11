@@ -12,14 +12,14 @@
 }
 
 .dashboard-header h1 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0 0 10px 0;
   font-size: 2.5rem;
   font-weight: 700;
 }
 
 .dashboard-header p {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
 }

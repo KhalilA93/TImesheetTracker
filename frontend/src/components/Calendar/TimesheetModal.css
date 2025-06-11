@@ -15,14 +15,15 @@
 
 /* Modal Content */
 .modal-content {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px var(--shadow-dark);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
+  transition: background-color 0.3s ease;
 }
 
 @keyframes modalSlideIn {
@@ -42,14 +43,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 2px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-secondary);
   border-radius: 12px 12px 0 0;
+  transition: background-color 0.3s ease;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -58,7 +60,7 @@
   background: none;
   border: none;
   font-size: 1.8rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -71,8 +73,8 @@
 }
 
 .close-btn:hover {
-  background: #e9ecef;
-  color: #495057;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Form Styles */
@@ -88,7 +90,7 @@
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -97,18 +99,20 @@
 .form-group textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 2px solid #e9ecef;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 

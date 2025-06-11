@@ -1,16 +1,16 @@
 /* Stat Card */
 .stat-card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-top: 4px solid #007bff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px var(--shadow-light);
+  border-top: 4px solid var(--accent-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px var(--shadow-medium);
 }
 
 .stat-header {
@@ -25,7 +25,7 @@
 }
 
 .stat-title {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
@@ -44,7 +44,7 @@
 }
 
 .stat-label {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   margin-bottom: 4px;
   font-weight: 500;
@@ -53,7 +53,7 @@
 .stat-value {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* Responsive Design */

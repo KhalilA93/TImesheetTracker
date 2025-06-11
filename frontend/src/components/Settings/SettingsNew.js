@@ -7,10 +7,7 @@ import './Settings.css';
 const Settings = () => {
   const dispatch = useDispatch();
   const { settings, loading, error } = useSelector(state => state.settings);
-    // Separate state for theme (client-side only)
-  const [themeData, setThemeData] = useState(ThemeManager.defaultTheme);
   
-  // State for other settings (backend)
   const [formData, setFormData] = useState({
     defaultPayRate: 30,
     overtimeThreshold: 8,
@@ -31,11 +28,14 @@ const Settings = () => {
       desktop: true
     }
   });
+
+  // Separate state for theme management
+  const [theme, setTheme] = useState(ThemeManager.defaultTheme);
+
   // Load theme on component mount
   useEffect(() => {
     const loadedTheme = ThemeManager.loadTheme();
-    setThemeData(loadedTheme);
-    ThemeManager.applyTheme(loadedTheme);
+    setTheme(loadedTheme);
   }, []);
 
   // Load backend settings
@@ -43,27 +43,17 @@ const Settings = () => {
     dispatch(fetchSettings());
   }, [dispatch]);
 
-  // Update formData when backend settings load (excluding theme)
+  // Update formData when backend settings load (theme is handled separately)
   useEffect(() => {
     if (settings) {
-      // Remove theme from backend settings if it exists
-      const { theme, ...otherSettings } = settings;
-      setFormData(prev => ({
-        ...prev,
-        ...otherSettings
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        ...settings
       }));
     }
   }, [settings]);
 
-  // Handle theme changes
-  const handleThemeChange = (property, value) => {
-    const newTheme = { ...themeData, [property]: value };
-    setThemeData(newTheme);
-    ThemeManager.saveTheme(newTheme);
-    ThemeManager.applyTheme(newTheme);
-  };
-
-  // Handle regular form input changes
+  // Handle regular form changes (non-theme)
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -84,10 +74,17 @@ const Settings = () => {
     }
   };
 
-  // Handle form submission (backend settings only)
+  // Handle theme changes separately
+  const handleThemeChange = (field, value) => {
+    const newTheme = { ...theme, [field]: value };
+    setTheme(newTheme);
+    ThemeManager.updateTheme(newTheme);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Only save non-theme settings to backend
       await dispatch(updateSettings(formData));
       alert('Settings updated successfully!');
     } catch (error) {
@@ -243,11 +240,11 @@ const Settings = () => {
             <label>
               <input
                 type="checkbox"
-                checked={themeData.darkMode}
+                checked={theme.darkMode}
                 onChange={(e) => handleThemeChange('darkMode', e.target.checked)}
               />
               Dark mode
-              {themeData.darkMode && (
+              {theme.darkMode && (
                 <span className="dark-mode-indicator">
                   🌙 Active
                 </span>
@@ -259,7 +256,7 @@ const Settings = () => {
             <input
               type="color"
               id="accentColor"
-              value={themeData.accentColor}
+              value={theme.accentColor}
               onChange={(e) => handleThemeChange('accentColor', e.target.value)}
             />
           </div>
@@ -270,7 +267,7 @@ const Settings = () => {
                 <button
                   key={color}
                   type="button"
-                  className={`color-preset ${themeData.accentColor === color ? 'active' : ''}`}
+                  className={`color-preset ${theme.accentColor === color ? 'active' : ''}`}
                   style={{ backgroundColor: color }}
                   onClick={() => handleThemeChange('accentColor', color)}
                   title={`Set accent color to ${color}`}
@@ -281,23 +278,15 @@ const Settings = () => {
           <div className="theme-preview">
             <div 
               className="accent-color-preview"
-              style={{ backgroundColor: themeData.accentColor }}
+              style={{ backgroundColor: theme.accentColor }}
             ></div>
             <span className="theme-preview-text">
-              Current theme: {themeData.darkMode ? 'Dark' : 'Light'} mode with accent color
+              Current theme: {theme.darkMode ? 'Dark' : 'Light'} mode with accent color
             </span>
           </div>
         </section>
 
         <div className="settings-actions">
-          <button type="button" onClick={() => {
-            console.log('=== THEME DEBUG ===');
-            console.log('themeData:', themeData);
-            console.log('localStorage:', localStorage.getItem('timesheet-theme'));
-            console.log('formData (no theme):', formData);
-          }} style={{marginRight: '10px', background: '#6c757d', color: 'white', padding: '10px 20px', borderRadius: '8px'}}>
-            Debug Theme
-          </button>
           <button type="submit" className="save-settings-btn">
             Save Settings
           </button>

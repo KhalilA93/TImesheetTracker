@@ -7,7 +7,8 @@ import './Settings.css';
 const Settings = () => {
   const dispatch = useDispatch();
   const { settings, loading, error } = useSelector(state => state.settings);
-    // Separate state for theme (client-side only)
+  
+  // Separate state for theme (client-side only)
   const [themeData, setThemeData] = useState(ThemeManager.defaultTheme);
   
   // State for other settings (backend)
@@ -31,6 +32,7 @@ const Settings = () => {
       desktop: true
     }
   });
+
   // Load theme on component mount
   useEffect(() => {
     const loadedTheme = ThemeManager.loadTheme();

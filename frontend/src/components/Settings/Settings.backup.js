@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSettings, updateSettings } from '../../store/actions/settingsActions';
-import { ThemeManager } from '../../utils/themeManager';
 import './Settings.css';
 
 const Settings = () => {
   const dispatch = useDispatch();
   const { settings, loading, error } = useSelector(state => state.settings);
-    // Separate state for theme (client-side only)
-  const [themeData, setThemeData] = useState(ThemeManager.defaultTheme);
   
-  // State for other settings (backend)
   const [formData, setFormData] = useState({
     defaultPayRate: 30,
     overtimeThreshold: 8,
@@ -29,41 +25,94 @@ const Settings = () => {
       enabled: true,
       sound: true,
       desktop: true
+    },
+    // New theme settings
+    theme: {
+      darkMode: false,
+      accentColor: '#007bff'
     }
-  });
-  // Load theme on component mount
+  });  // Load theme from localStorage on component mount
   useEffect(() => {
-    const loadedTheme = ThemeManager.loadTheme();
-    setThemeData(loadedTheme);
-    ThemeManager.applyTheme(loadedTheme);
+    const savedTheme = localStorage.getItem('timesheet-theme');
+    if (savedTheme) {
+      try {
+        const parsedTheme = JSON.parse(savedTheme);
+        
+        // Apply theme immediately to DOM
+        const root = document.documentElement;
+        if (parsedTheme.darkMode) {
+          root.classList.add('dark-mode');
+        } else {
+          root.classList.remove('dark-mode');
+        }
+        if (parsedTheme.accentColor) {
+          root.style.setProperty('--accent-color', parsedTheme.accentColor);
+        }
+        
+        // Update form data
+        setFormData(prev => ({
+          ...prev,
+          theme: { ...prev.theme, ...parsedTheme }
+        }));
+      } catch (error) {
+        console.error('Error parsing saved theme:', error);
+      }
+    }
   }, []);
 
-  // Load backend settings
   useEffect(() => {
     dispatch(fetchSettings());
-  }, [dispatch]);
-
-  // Update formData when backend settings load (excluding theme)
-  useEffect(() => {
+  }, [dispatch]);  useEffect(() => {
     if (settings) {
-      // Remove theme from backend settings if it exists
-      const { theme, ...otherSettings } = settings;
-      setFormData(prev => ({
-        ...prev,
-        ...otherSettings
+      // Get current theme from localStorage to preserve it
+      const savedTheme = localStorage.getItem('timesheet-theme');
+      let preservedTheme = {
+        darkMode: false,
+        accentColor: '#007bff'
+      };
+      
+      if (savedTheme) {
+        try {
+          preservedTheme = JSON.parse(savedTheme);
+        } catch (error) {
+          console.error('Error parsing saved theme:', error);
+        }
+      }
+
+      // Settings from Redux already have theme filtered out
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        ...settings,
+        // Always preserve theme settings from localStorage
+        theme: preservedTheme
       }));
     }
-  }, [settings]);
+  }, [settings]);// Apply theme changes to document root
+  useEffect(() => {
+    if (formData.theme && (formData.theme.darkMode !== undefined || formData.theme.accentColor)) {
+      const root = document.documentElement;
+      
+      // Apply dark mode
+      if (formData.theme.darkMode) {
+        root.classList.add('dark-mode');
+      } else {
+        root.classList.remove('dark-mode');
+      }
+      
+      // Apply accent color
+      if (formData.theme.accentColor) {
+        root.style.setProperty('--accent-color', formData.theme.accentColor);
+      }
+      
+      // Save theme to localStorage
+      localStorage.setItem('timesheet-theme', JSON.stringify(formData.theme));
+    }  }, [formData.theme.darkMode, formData.theme.accentColor]); // Only run when theme values actually change
 
-  // Handle theme changes
-  const handleThemeChange = (property, value) => {
-    const newTheme = { ...themeData, [property]: value };
-    setThemeData(newTheme);
-    ThemeManager.saveTheme(newTheme);
-    ThemeManager.applyTheme(newTheme);
-  };
+  // Debug useEffect to track theme changes
+  useEffect(() => {
+    console.log('Theme changed:', formData.theme);
+  }, [formData.theme]);
 
-  // Handle regular form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -82,12 +131,10 @@ const Settings = () => {
         [name]: type === 'checkbox' ? checked : (type === 'number' ? parseFloat(value) : value)
       }));
     }
-  };
-
-  // Handle form submission (backend settings only)
-  const handleSubmit = async (e) => {
+  };  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Theme filtering is now handled in Redux actions
       await dispatch(updateSettings(formData));
       alert('Settings updated successfully!');
     } catch (error) {
@@ -234,20 +281,18 @@ const Settings = () => {
               Desktop notifications
             </label>
           </div>
-        </section>
-
-        {/* Theme Settings */}
+        </section>        {/* Theme Settings */}
         <section className="settings-section theme-settings">
           <h2>🌙 Theme Settings</h2>
           <div className="checkbox-group">
-            <label>
-              <input
+            <label>              <input
                 type="checkbox"
-                checked={themeData.darkMode}
+                name="theme.darkMode"
+                checked={theme.darkMode}
                 onChange={(e) => handleThemeChange('darkMode', e.target.checked)}
               />
               Dark mode
-              {themeData.darkMode && (
+              {formData.theme.darkMode && (
                 <span className="dark-mode-indicator">
                   🌙 Active
                 </span>
@@ -255,12 +300,13 @@ const Settings = () => {
             </label>
           </div>
           <div className="form-group">
-            <label htmlFor="accentColor">Accent Color</label>
+            <label htmlFor="theme.accentColor">Accent Color</label>
             <input
               type="color"
-              id="accentColor"
-              value={themeData.accentColor}
-              onChange={(e) => handleThemeChange('accentColor', e.target.value)}
+              id="theme.accentColor"
+              name="theme.accentColor"
+              value={formData.theme.accentColor}
+              onChange={handleInputChange}
             />
           </div>
           <div className="color-presets">
@@ -270,9 +316,12 @@ const Settings = () => {
                 <button
                   key={color}
                   type="button"
-                  className={`color-preset ${themeData.accentColor === color ? 'active' : ''}`}
+                  className={`color-preset ${formData.theme.accentColor === color ? 'active' : ''}`}
                   style={{ backgroundColor: color }}
-                  onClick={() => handleThemeChange('accentColor', color)}
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    theme: { ...prev.theme, accentColor: color }
+                  }))}
                   title={`Set accent color to ${color}`}
                 />
               ))}
@@ -281,22 +330,21 @@ const Settings = () => {
           <div className="theme-preview">
             <div 
               className="accent-color-preview"
-              style={{ backgroundColor: themeData.accentColor }}
+              style={{ backgroundColor: formData.theme.accentColor }}
             ></div>
             <span className="theme-preview-text">
-              Current theme: {themeData.darkMode ? 'Dark' : 'Light'} mode with accent color
+              Current theme: {formData.theme.darkMode ? 'Dark' : 'Light'} mode with accent color
             </span>
           </div>
-        </section>
-
-        <div className="settings-actions">
+        </section>        <div className="settings-actions">
           <button type="button" onClick={() => {
-            console.log('=== THEME DEBUG ===');
-            console.log('themeData:', themeData);
-            console.log('localStorage:', localStorage.getItem('timesheet-theme'));
-            console.log('formData (no theme):', formData);
-          }} style={{marginRight: '10px', background: '#6c757d', color: 'white', padding: '10px 20px', borderRadius: '8px'}}>
-            Debug Theme
+            console.log('=== CURRENT STATE DEBUG ===');
+            console.log('formData.theme:', formData.theme);
+            console.log('localStorage theme:', localStorage.getItem('timesheet-theme'));
+            console.log('Redux settings:', settings);
+            console.log('Full formData:', formData);
+          }} style={{marginRight: '10px', background: '#6c757d'}}>
+            Debug State
           </button>
           <button type="submit" className="save-settings-btn">
             Save Settings
