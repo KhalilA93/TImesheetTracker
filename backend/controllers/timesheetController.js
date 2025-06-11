@@ -185,13 +185,14 @@ const updateEntry = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+    // Find the entry first
+    const entry = await TimesheetEntry.findById(id);
+    if (!entry) {
+      return res.status(404).json({ message: 'Timesheet entry not found' });
+    }
+
     // If updating times, recalculate hours
     if (updates.startTime || updates.endTime) {
-      const entry = await TimesheetEntry.findById(id);
-      if (!entry) {
-        return res.status(404).json({ message: 'Timesheet entry not found' });
-      }
-
       const startTime = updates.startTime ? new Date(updates.startTime) : entry.startTime;
       const endTime = updates.endTime ? new Date(updates.endTime) : entry.endTime;
 
@@ -201,18 +202,17 @@ const updateEntry = async (req, res) => {
         });
       }
 
+      // Calculate and set hours worked in the updates object
       updates.hoursWorked = (endTime - startTime) / (1000 * 60 * 60);
     }
 
-    const entry = await TimesheetEntry.findByIdAndUpdate(
-      id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    // Apply updates to the entry
+    Object.keys(updates).forEach(key => {
+      entry[key] = updates[key];
+    });
 
-    if (!entry) {
-      return res.status(404).json({ message: 'Timesheet entry not found' });
-    }
+    // Save the entry to trigger pre-save middleware
+    await entry.save();
 
     res.json({
       message: 'Timesheet entry updated successfully',

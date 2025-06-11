@@ -10,31 +10,15 @@ const timesheetEntrySchema = new mongoose.Schema({
   startTime: {
     type: Date,
     required: true
-  },
-  endTime: {
+  },  endTime: {
     type: Date,
-    required: true,
-    validate: {
-      validator: function(endTime) {
-        return endTime > this.startTime;
-      },
-      message: 'End time must be after start time'
-    }
+    required: true
   },
-  
-  // Calculated hours (can be computed from start/end time)
+    // Calculated hours (can be computed from start/end time)
   hoursWorked: {
     type: Number,
     required: true,
-    min: 0,
-    validate: {
-      validator: function(hours) {
-        // Validate that hours match the time difference
-        const timeDiff = (this.endTime - this.startTime) / (1000 * 60 * 60);
-        return Math.abs(timeDiff - hours) < 0.01; // Allow small floating point differences
-      },
-      message: 'Hours worked must match the time difference between start and end time'
-    }
+    min: 0
   },
   
   // Pay information
@@ -42,7 +26,8 @@ const timesheetEntrySchema = new mongoose.Schema({
     type: Number,
     min: 0,
     default: null // null means use global pay rate
-  },  calculatedPay: {
+  },
+  calculatedPay: {
     type: Number,
     min: 0,
     default: 0
@@ -127,13 +112,25 @@ timesheetEntrySchema.virtual('title').get(function() {
 timesheetEntrySchema.pre('save', async function(next) {
   this.updatedAt = new Date();
   
-  // Calculate hours worked from time difference if not provided
-  if (!this.hoursWorked && this.startTime && this.endTime) {
-    this.hoursWorked = (this.endTime - this.startTime) / (1000 * 60 * 60);
+  // Validate end time is after start time
+  if (this.startTime && this.endTime && this.endTime <= this.startTime) {
+    return next(new Error('End time must be after start time'));
+  }
+    // If times are modified, recalculate hours worked
+  if (this.isModified('startTime') || this.isModified('endTime')) {
+    if (this.startTime && this.endTime) {
+      this.hoursWorked = (this.endTime - this.startTime) / (1000 * 60 * 60);
+      // Force pay recalculation when times change
+      this.calculatedPay = 0;
+    }
   }
   
-  // Calculate pay if not already set
-  if (this.isModified('hoursWorked') || this.isModified('payRateOverride') || !this.calculatedPay) {
+  // Calculate hours worked from time difference if not provided or if it's a new document
+  if ((!this.hoursWorked || this.isNew) && this.startTime && this.endTime) {
+    this.hoursWorked = (this.endTime - this.startTime) / (1000 * 60 * 60);
+  }
+    // Calculate pay if not already set or if relevant fields are modified
+  if (this.isModified('hoursWorked') || this.isModified('payRateOverride') || !this.calculatedPay || this.isNew) {
     let payRate = this.payRateOverride;
     
     // If no override, get global pay rate
