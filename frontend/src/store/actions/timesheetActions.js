@@ -15,14 +15,31 @@ export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
   dispatch({ type: 'TIMESHEET_LOADING' });
   try {
     const response = await timesheetApi.getCalendarEntries(startDate, endDate);
+    
     // Extract the events array from the response and convert date strings to Date objects
-    const events = (response.data.events || []).map(event => ({
-      ...event,
-      start: new Date(event.start),
-      end: new Date(event.end)
-    }));
+    const rawEvents = response.data.events || [];
+    
+    const events = rawEvents.map(event => {
+      // Ensure start and end are valid Date objects
+      const startDate = new Date(event.start);
+      const endDate = new Date(event.end);
+      
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error('Invalid date in event:', event);
+        return null;
+      }
+      
+      return {
+        ...event,
+        start: startDate,
+        end: endDate
+      };
+    }).filter(Boolean); // Remove null events
+    
     dispatch({ type: 'FETCH_CALENDAR_EVENTS_SUCCESS', payload: events });
   } catch (error) {
+    console.error('Error fetching calendar events:', error);
     dispatch({ type: 'TIMESHEET_ERROR', payload: error.message });
   }
 };

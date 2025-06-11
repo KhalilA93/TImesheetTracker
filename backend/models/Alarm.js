@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
-const alarmSchema = new mongoose.Schema({  // Link to timesheet entry
+const alarmSchema = new mongoose.Schema({  // Link to timesheet entry (optional for custom alarms)
   timesheetEntryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TimesheetEntry',
-    required: true
+    required: false,
+    default: null
     // Removed index: true to avoid duplicate with schema.index below
   },
   

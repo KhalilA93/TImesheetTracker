@@ -8,7 +8,10 @@ const {
   getAlarmStatistics
 } = require('../controllers/dashboardController');
 
-// GET /api/dashboard - Get dashboard overview
+// GET /api/dashboard/overview - Get dashboard overview
+router.get('/overview', getDashboardOverview);
+
+// GET /api/dashboard - Get dashboard overview (alias for backwards compatibility)
 router.get('/', getDashboardOverview);
 
 // GET /api/dashboard/weekly - Get weekly summary

@@ -88,36 +88,42 @@ const createAlarm = async (req, res) => {
   try {
     const {
       timesheetEntryId,
+      alarmTime,
       reminderMinutes = 15,
-      type = 'start-reminder',
+      type = 'custom',
       title,
       message,
       soundEnabled = true,
       browserNotification = true
     } = req.body;
 
-    // Validate timesheet entry exists
-    const timesheetEntry = await TimesheetEntry.findById(timesheetEntryId);
-    if (!timesheetEntry) {
-      return res.status(404).json({ message: 'Timesheet entry not found' });
-    }
+    let calculatedAlarmTime = alarmTime;
 
-    // Calculate alarm time based on type and reminder minutes
-    let alarmTime;
-    switch (type) {
-      case 'start-reminder':
-        alarmTime = new Date(timesheetEntry.startTime.getTime() - (reminderMinutes * 60 * 1000));
-        break;
-      case 'end-reminder':
-        alarmTime = new Date(timesheetEntry.endTime.getTime() - (reminderMinutes * 60 * 1000));
-        break;
-      default:
-        alarmTime = new Date(timesheetEntry.startTime.getTime() - (reminderMinutes * 60 * 1000));
+    // If timesheetEntryId is provided, validate and calculate alarm time
+    if (timesheetEntryId) {
+      const timesheetEntry = await TimesheetEntry.findById(timesheetEntryId);
+      if (!timesheetEntry) {
+        return res.status(404).json({ message: 'Timesheet entry not found' });
+      }
+
+      // Calculate alarm time based on type and reminder minutes
+      switch (type) {
+        case 'start-reminder':
+          calculatedAlarmTime = new Date(timesheetEntry.startTime.getTime() - (reminderMinutes * 60 * 1000));
+          break;
+        case 'end-reminder':
+          calculatedAlarmTime = new Date(timesheetEntry.endTime.getTime() - (reminderMinutes * 60 * 1000));
+          break;
+        default:
+          calculatedAlarmTime = new Date(timesheetEntry.startTime.getTime() - (reminderMinutes * 60 * 1000));
+      }
+    } else if (!alarmTime) {
+      return res.status(400).json({ message: 'Either timesheetEntryId or alarmTime must be provided' });
     }
 
     const alarm = new Alarm({
-      timesheetEntryId,
-      alarmTime,
+      timesheetEntryId: timesheetEntryId || null,
+      alarmTime: calculatedAlarmTime,
       reminderMinutes,
       type,
       title,
@@ -128,8 +134,10 @@ const createAlarm = async (req, res) => {
 
     await alarm.save();
 
-    // Populate the timesheet entry for response
-    await alarm.populate('timesheetEntryId');
+    // Populate the timesheet entry for response if it exists
+    if (timesheetEntryId) {
+      await alarm.populate('timesheetEntryId');
+    }
 
     res.status(201).json({
       message: 'Alarm created successfully',

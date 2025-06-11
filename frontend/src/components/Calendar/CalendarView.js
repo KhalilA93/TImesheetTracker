@@ -20,29 +20,55 @@ const CalendarView = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [view, setView] = useState(Views.WEEK);
   const [date, setDate] = useState(new Date());
-  // Fetch calendar events when view or date changes
-  useEffect(() => {
+
+  // Helper function to get date range for current view
+  const getDateRange = (currentDate, currentView) => {
     let startDate, endDate;
     
-    switch (view) {
+    switch (currentView) {
       case Views.DAY:
-        startDate = moment(date).startOf('day').toISOString();
-        endDate = moment(date).endOf('day').toISOString();
+        const dayStart = new Date(currentDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(currentDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        startDate = dayStart.toISOString();
+        endDate = dayEnd.toISOString();
         break;
       case Views.WEEK:
-        startDate = moment(date).startOf('week').toISOString();
-        endDate = moment(date).endOf('week').toISOString();
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        startDate = weekStart.toISOString();
+        endDate = weekEnd.toISOString();
         break;
       case Views.MONTH:
-        startDate = moment(date).startOf('month').toISOString();
-        endDate = moment(date).endOf('month').toISOString();
+        const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        monthStart.setHours(0, 0, 0, 0);
+        const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        monthEnd.setHours(23, 59, 59, 999);
+        startDate = monthStart.toISOString();
+        endDate = monthEnd.toISOString();
         break;
       default:
-        startDate = moment(date).startOf('week').toISOString();
-        endDate = moment(date).endOf('week').toISOString();
+        const defaultWeekStart = new Date(currentDate);
+        defaultWeekStart.setDate(currentDate.getDate() - currentDate.getDay());
+        defaultWeekStart.setHours(0, 0, 0, 0);
+        const defaultWeekEnd = new Date(defaultWeekStart);
+        defaultWeekEnd.setDate(defaultWeekStart.getDate() + 6);
+        defaultWeekEnd.setHours(23, 59, 59, 999);
+        startDate = defaultWeekStart.toISOString();
+        endDate = defaultWeekEnd.toISOString();
     }
-    
-    dispatch(fetchCalendarEvents(startDate, endDate));
+      return { startDate, endDate };
+  };
+
+  // Fetch calendar events when view or date changes
+  useEffect(() => {
+    const { startDate, endDate } = getDateRange(date, view);
+      dispatch(fetchCalendarEvents(startDate, endDate));
   }, [dispatch, date, view]);
 
   // Handle clicking on an existing event
@@ -68,30 +94,12 @@ const CalendarView = () => {
       } else {
         // Create new entry
         await dispatch(createEntry(entryData));
-      }
-        setShowModal(false);
+      }      setShowModal(false);
       setSelectedEvent(null);
       setSelectedSlot(null);
       
       // Refresh calendar events
-      let startDate, endDate;
-      switch (view) {
-        case Views.DAY:
-          startDate = moment(date).startOf('day').toISOString();
-          endDate = moment(date).endOf('day').toISOString();
-          break;
-        case Views.WEEK:
-          startDate = moment(date).startOf('week').toISOString();
-          endDate = moment(date).endOf('week').toISOString();
-          break;
-        case Views.MONTH:
-          startDate = moment(date).startOf('month').toISOString();
-          endDate = moment(date).endOf('month').toISOString();
-          break;
-        default:
-          startDate = moment(date).startOf('week').toISOString();
-          endDate = moment(date).endOf('week').toISOString();
-      }
+      const { startDate, endDate } = getDateRange(date, view);
       dispatch(fetchCalendarEvents(startDate, endDate));
     } catch (error) {
       console.error('Error saving entry:', error);
@@ -100,37 +108,20 @@ const CalendarView = () => {
   // Handle deleting timesheet entry
   const handleDeleteEntry = async (entryId) => {
     try {
-      await dispatch(deleteEntry(entryId));
-      setShowModal(false);
+      await dispatch(deleteEntry(entryId));      setShowModal(false);
       setSelectedEvent(null);
       
       // Refresh calendar events
-      let startDate, endDate;
-      switch (view) {
-        case Views.DAY:
-          startDate = moment(date).startOf('day').toISOString();
-          endDate = moment(date).endOf('day').toISOString();
-          break;
-        case Views.WEEK:
-          startDate = moment(date).startOf('week').toISOString();
-          endDate = moment(date).endOf('week').toISOString();
-          break;
-        case Views.MONTH:
-          startDate = moment(date).startOf('month').toISOString();
-          endDate = moment(date).endOf('month').toISOString();
-          break;
-        default:
-          startDate = moment(date).startOf('week').toISOString();
-          endDate = moment(date).endOf('week').toISOString();
-      }
+      const { startDate, endDate } = getDateRange(date, view);
       dispatch(fetchCalendarEvents(startDate, endDate));
     } catch (error) {
       console.error('Error deleting entry:', error);
     }
   };
+
   // Event style getter for color coding
   const eventStyleGetter = (event) => {
-    const backgroundColor = event.backgroundColor || event.color || settings.colorScheme?.[event.resource?.category] || '#3174ad';
+    const backgroundColor = event.color || settings.colorScheme[event.category] || '#3174ad';
     return {
       style: {
         backgroundColor,
@@ -142,12 +133,13 @@ const CalendarView = () => {
       }
     };
   };
+
   // Custom event component
   const EventComponent = ({ event }) => (
     <div className="calendar-event">
       <strong>{event.title}</strong>
-      {event.resource?.project && <div className="event-project">{event.resource.project}</div>}
-      <div className="event-pay">${event.resource?.calculatedPay?.toFixed(2)}</div>
+      {event.project && <div className="event-project">{event.project}</div>}
+      <div className="event-pay">${event.calculatedPay?.toFixed(2)}</div>
     </div>
   );
 
@@ -200,21 +192,27 @@ const CalendarView = () => {
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h1>Timesheet Calendar</h1>
-        <button 
+        <h1>Timesheet Calendar</h1>        <button 
           onClick={() => {
             setSelectedEvent(null);
-            setSelectedSlot({ start: new Date(), end: moment().add(1, 'hour').toDate() });
+            const currentTime = new Date();
+            const oneHourLater = new Date(currentTime.getTime() + 60 * 60 * 1000);
+            setSelectedSlot({ start: currentTime, end: oneHourLater });
             setShowModal(true);
           }}
           className="add-entry-btn"
         >
           + Add Entry
         </button>
-      </div>
-        <Calendar
+      </div>      <Calendar
         localizer={localizer}
-        events={Array.isArray(calendarEvents) ? calendarEvents : []}
+        events={Array.isArray(calendarEvents) ? calendarEvents.filter(event => 
+          event && 
+          event.start instanceof Date && 
+          event.end instanceof Date && 
+          !isNaN(event.start.getTime()) && 
+          !isNaN(event.end.getTime())
+        ) : []}
         startAccessor="start"
         endAccessor="end"
         style={{ height: 'calc(100vh - 200px)' }}

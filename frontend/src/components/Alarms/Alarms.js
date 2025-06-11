@@ -7,7 +7,7 @@ import './Alarms.css';
 
 const Alarms = () => {
   const dispatch = useDispatch();
-  const { alarms, loading, error } = useSelector(state => state.alarms);
+  const { alarms = [], loading, error } = useSelector(state => state.alarms || {});
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -51,10 +51,8 @@ const Alarms = () => {
         >
           + Add Alarm
         </button>
-      </div>
-
-      <div className="alarms-list">
-        {alarms.length === 0 ? (
+      </div>      <div className="alarms-list">
+        {!Array.isArray(alarms) || alarms.length === 0 ? (
           <div className="no-alarms">
             <p>No alarms set yet</p>
             <p>Create your first alarm to get work reminders</p>

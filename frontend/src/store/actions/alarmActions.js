@@ -5,7 +5,9 @@ export const fetchAlarms = () => async (dispatch) => {
   dispatch({ type: 'ALARMS_LOADING' });
   try {
     const response = await alarmApi.getAlarms();
-    dispatch({ type: 'FETCH_ALARMS_SUCCESS', payload: response.data });
+    // Extract the alarms array from the response
+    const alarms = response.data.alarms || [];
+    dispatch({ type: 'FETCH_ALARMS_SUCCESS', payload: alarms });
   } catch (error) {
     dispatch({ type: 'ALARMS_ERROR', payload: error.message });
   }

@@ -95,12 +95,11 @@ export const dashboardApi = {
     if (month) params.month = month;
     return api.get('/dashboard/monthly', { params });
   },
-  
-  // Get project breakdown
+    // Get project breakdown
   getProjectBreakdown: (startDate, endDate) => {
     const params = {};
-    if (startDate) params.start = startDate;
-    if (endDate) params.end = endDate;
-    return api.get('/dashboard/projects', { params });
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return api.get('/timesheet-entries/projects/summary', { params });
   }
 };
