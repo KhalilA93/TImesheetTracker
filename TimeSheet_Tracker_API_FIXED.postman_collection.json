@@ -1,0 +1,343 @@
+{
+  "info": {
+    "name": "TimeSheet Tracker API - Fixed",
+    "description": "Complete API collection for the TimeSheet Tracker MERN application (with calculatedPay fix)",
+    "version": "1.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "timesheetId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alarmId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Settings",
+      "item": [
+        {
+          "name": "Get All Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Pay Rate (REQUIRED FIRST!)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payRate\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/pay-rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "pay-rate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Timesheet Entries",
+      "item": [
+        {
+          "name": "Create Regular Work Entry",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.entry && response.entry._id) {",
+                  "        pm.collectionVariables.set('timesheetId', response.entry._id);",
+                  "        console.log('Saved timesheet ID:', response.entry._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-06-10\",\n  \"startTime\": \"2025-06-10T09:00:00.000Z\",\n  \"endTime\": \"2025-06-10T17:00:00.000Z\",\n  \"description\": \"Frontend development - React components and calendar integration\",\n  \"project\": \"TimeSheet Tracker App\",\n  \"category\": \"regular\",\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries"]
+            }
+          }
+        },
+        {
+          "name": "Create Overtime Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-06-11\",\n  \"startTime\": \"2025-06-11T18:00:00.000Z\",\n  \"endTime\": \"2025-06-11T21:00:00.000Z\",\n  \"description\": \"Emergency bug fixes and deployment\",\n  \"project\": \"Client Website\",\n  \"category\": \"overtime\",\n  \"payRateOverride\": 45,\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries"]
+            }
+          }
+        },
+        {
+          "name": "Create Meeting Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-06-12\",\n  \"startTime\": \"2025-06-12T14:00:00.000Z\",\n  \"endTime\": \"2025-06-12T15:30:00.000Z\",\n  \"description\": \"Weekly team standup and project planning\",\n  \"project\": \"Team Management\",\n  \"category\": \"meeting\",\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries"]
+            }
+          }
+        },
+        {
+          "name": "Get All Entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries"]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar Entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries/calendar?startDate=2025-06-01&endDate=2025-06-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries", "calendar"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-06-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-06-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Totals for Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/timesheet-entries/totals?startDate=2025-06-01&endDate=2025-06-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["timesheet-entries", "totals"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-06-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-06-30"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏰ Alarms",
+      "item": [
+        {
+          "name": "Create Start Work Reminder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.alarm && response.alarm._id) {",
+                  "        pm.collectionVariables.set('alarmId', response.alarm._id);",
+                  "        console.log('Saved alarm ID:', response.alarm._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timesheetEntryId\": \"{{timesheetId}}\",\n  \"type\": \"start-reminder\",\n  \"reminderMinutes\": 15,\n  \"title\": \"Work Start Reminder\",\n  \"message\": \"Don't forget to start work in 15 minutes!\",\n  \"soundEnabled\": true,\n  \"browserNotification\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alarms",
+              "host": ["{{baseUrl}}"],
+              "path": ["alarms"]
+            }
+          }
+        },
+        {
+          "name": "Create Custom Alarm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"custom\",\n  \"alarmTime\": \"2025-06-15T09:30:00.000Z\",\n  \"title\": \"Client Meeting Reminder\",\n  \"message\": \"Client call in 30 minutes - prepare presentation\",\n  \"soundEnabled\": true,\n  \"browserNotification\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alarms",
+              "host": ["{{baseUrl}}"],
+              "path": ["alarms"]
+            }
+          }
+        },
+        {
+          "name": "Get All Alarms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alarms",
+              "host": ["{{baseUrl}}"],
+              "path": ["alarms"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Weekly Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/weekly?startDate=2025-06-08",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "weekly"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-06-08"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
