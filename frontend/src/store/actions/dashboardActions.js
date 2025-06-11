@@ -5,7 +5,19 @@ export const fetchDashboardOverview = () => async (dispatch) => {
   dispatch({ type: 'DASHBOARD_LOADING' });
   try {
     const response = await dashboardApi.getOverview();
-    dispatch({ type: 'FETCH_DASHBOARD_OVERVIEW_SUCCESS', payload: response.data });
+    
+    // Transform the API response to match the expected format
+    const { totals } = response.data;
+    const transformedData = {
+      todayHours: totals.today?.totalHours || 0,
+      todayPay: totals.today?.totalPay || 0,
+      weekHours: totals.thisWeek?.totalHours || 0,
+      weekPay: totals.thisWeek?.totalPay || 0,
+      monthHours: totals.thisMonth?.totalHours || 0,
+      monthPay: totals.thisMonth?.totalPay || 0
+    };
+    
+    dispatch({ type: 'FETCH_DASHBOARD_OVERVIEW_SUCCESS', payload: transformedData });
   } catch (error) {
     dispatch({ type: 'DASHBOARD_ERROR', payload: error.message });
   }

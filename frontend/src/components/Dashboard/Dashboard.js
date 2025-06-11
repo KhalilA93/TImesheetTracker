@@ -33,29 +33,29 @@ const Dashboard = () => {
       <div className="stats-grid">
         <StatCard
           title="Today"
-          hours={overview.todayHours || 0}
-          pay={overview.todayPay || 0}
+          hours={overview?.todayHours || 0}
+          pay={overview?.todayPay || 0}
           icon="📅"
           color="#007bff"
         />
         <StatCard
           title="This Week"
-          hours={overview.weekHours || 0}
-          pay={overview.weekPay || 0}
+          hours={overview?.weekHours || 0}
+          pay={overview?.weekPay || 0}
           icon="📊"
           color="#28a745"
         />
         <StatCard
           title="This Month"
-          hours={overview.monthHours || 0}
-          pay={overview.monthPay || 0}
+          hours={overview?.monthHours || 0}
+          pay={overview?.monthPay || 0}
           icon="💰"
           color="#ffc107"
         />
         <StatCard
           title="Average Daily"
-          hours={(overview.weekHours || 0) / 7}
-          pay={(overview.weekPay || 0) / 7}
+          hours={(overview?.weekHours || 0) / 7}
+          pay={(overview?.weekPay || 0) / 7}
           icon="⚡"
           color="#17a2b8"
         />
@@ -72,14 +72,10 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
+      <div className="quick-actions">        <h3>Quick Actions</h3>
         <div className="actions-grid">
           <button className="action-btn" onClick={() => window.location.href = '/calendar'}>
             📅 View Calendar
-          </button>
-          <button className="action-btn" onClick={() => window.location.href = '/alarms'}>
-            ⏰ Set Alarm
           </button>
           <button className="action-btn" onClick={() => window.location.href = '/settings'}>
             ⚙️ Update Settings

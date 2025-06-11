@@ -17,19 +17,17 @@ const AlarmCard = ({ alarm, onDelete }) => {
           🗑️
         </button>
       </div>
-      
-      <div className="alarm-details">
-        <p><strong>Time:</strong> {formatTime(alarm.triggerTime)}</p>
+        <div className="alarm-details">
+        <p><strong>Time:</strong> {formatTime(alarm.alarmTime)}</p>
         <p><strong>Type:</strong> {alarm.type}</p>
         {alarm.message && <p><strong>Message:</strong> {alarm.message}</p>}
-        {alarm.timesheetEntry && (
+        {alarm.timesheetEntryId && (
           <p><strong>Related Entry:</strong> Work session</p>
         )}
       </div>
-      
-      <div className="alarm-status">
-        <span className={`status ${alarm.isEnabled ? 'enabled' : 'disabled'}`}>
-          {alarm.isEnabled ? '✅ Enabled' : '❌ Disabled'}
+        <div className="alarm-status">
+        <span className={`status ${alarm.status === 'active' ? 'enabled' : 'disabled'}`}>
+          {alarm.status === 'active' ? '✅ Active' : `❌ ${alarm.status}`}
         </span>
       </div>
     </div>

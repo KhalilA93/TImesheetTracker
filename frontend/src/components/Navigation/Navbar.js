@@ -18,21 +18,12 @@ const Navbar = () => {
             >
               📅 Calendar
             </NavLink>
-          </li>
-          <li className="nav-item">
+          </li>          <li className="nav-item">
             <NavLink 
               to="/dashboard" 
               className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             >
               📊 Dashboard
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink 
-              to="/alarms" 
-              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            >
-              ⏰ Alarms
             </NavLink>
           </li>
           <li className="nav-item">

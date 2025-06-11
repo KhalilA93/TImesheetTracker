@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import moment from 'moment';
 
-const AlarmModal = ({ isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+const AlarmModal = ({ isOpen, onClose, onSave }) => {  const [formData, setFormData] = useState({
     title: '',
     triggerTime: moment().add(1, 'hour').format('YYYY-MM-DDTHH:mm'),
-    type: 'work_start',
+    type: 'custom',
     message: '',
     isEnabled: true
   });
@@ -20,10 +19,13 @@ const AlarmModal = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const alarmData = {
-      ...formData,
-      triggerTime: new Date(formData.triggerTime).toISOString()
+      const alarmData = {
+      title: formData.title,
+      alarmTime: new Date(formData.triggerTime).toISOString(),
+      type: formData.type,
+      message: formData.message,
+      soundEnabled: formData.isEnabled,
+      browserNotification: formData.isEnabled
     };
 
     onSave(alarmData);
@@ -66,19 +68,16 @@ const AlarmModal = ({ isOpen, onClose, onSave }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="type">Alarm Type</label>
-            <select
+            <label htmlFor="type">Alarm Type</label>            <select
               id="type"
               name="type"
               value={formData.type}
               onChange={handleInputChange}
             >
-              <option value="work_start">Work Start</option>
-              <option value="work_end">Work End</option>
-              <option value="break_start">Break Start</option>
-              <option value="break_end">Break End</option>
-              <option value="meeting">Meeting</option>
               <option value="custom">Custom</option>
+              <option value="start-reminder">Work Start Reminder</option>
+              <option value="end-reminder">Work End Reminder</option>
+              <option value="break-reminder">Break Reminder</option>
             </select>
           </div>
 
