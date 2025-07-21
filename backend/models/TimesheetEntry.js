@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 
 const timesheetEntrySchema = new mongoose.Schema({
+  // Owner reference
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   // Date and time information
   date: {
     type: Date,

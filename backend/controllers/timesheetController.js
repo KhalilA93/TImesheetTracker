@@ -15,8 +15,8 @@ const getAllEntries = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build filter object
-    const filter = {};
+    // Build filter object (only current user's entries)
+    const filter = { owner: req.user._id };
     
     if (startDate || endDate) {
       filter.date = {};
@@ -67,10 +67,13 @@ const getCalendarEntries = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required' });
     }
 
-    const entries = await TimesheetEntry.getEntriesForDateRange(
-      new Date(startDate),
-      new Date(endDate)
-    );    // Transform entries for calendar format
+    const entries = await TimesheetEntry.find({
+      owner: req.user._id,
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    });    // Transform entries for calendar format
     const calendarEvents = entries.map(entry => ({
       id: entry._id.toString(),
       title: entry.title,
@@ -99,7 +102,10 @@ const getCalendarEntries = async (req, res) => {
 // Get single timesheet entry by ID
 const getEntryById = async (req, res) => {
   try {
-    const entry = await TimesheetEntry.findById(req.params.id);
+    const entry = await TimesheetEntry.findOne({ 
+      _id: req.params.id, 
+      owner: req.user._id 
+    });
     
     if (!entry) {
       return res.status(404).json({ message: 'Timesheet entry not found' });
@@ -151,6 +157,7 @@ const createEntry = async (req, res) => {
 
     // Create entry
     const entry = new TimesheetEntry({
+      owner: req.user._id,
       date: entryDate,
       startTime: start,
       endTime: end,

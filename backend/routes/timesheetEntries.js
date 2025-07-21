@@ -12,6 +12,10 @@ const {
   getProjectSummary
 } = require('../controllers/timesheetController');
 
+// Protect all timesheet routes
+const auth = require('../middleware/auth');
+router.use(auth);
+
 // GET /api/timesheet-entries - Get all entries with filtering
 router.get('/', getAllEntries);
 

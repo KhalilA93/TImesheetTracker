@@ -31,6 +31,12 @@ connectDB();
 // Routes
 app.use('/api', require('./routes'));
 
+// Auth routes
+app.use('/api/auth', require('./routes/auth'));
+
+// Timesheet routes (protected)
+app.use('/api/timesheet-entries', require('./routes/timesheetEntries'));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 

@@ -94,6 +94,77 @@
   border-radius: 2px;
 }
 
+/* User Menu Styles */
+.nav-user {
+  position: relative;
+  margin-left: 20px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.user-avatar:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  margin-top: 8px;
+  padding: 10px 0;
+}
+
+.user-info {
+  padding: 10px 15px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-email {
+  color: #666;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #dc2626;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+}
+
 /* Mobile Responsive */
 @media screen and (max-width: 768px) {
   .nav-container {
@@ -112,6 +183,21 @@
   .nav-link {
     padding: 8px 12px;
     font-size: 0.9rem;
+  }
+  
+  .nav-user {
+    margin-left: 10px;
+  }
+  
+  .user-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+  
+  .user-dropdown {
+    right: -10px;
+    min-width: 180px;
   }
 }
 

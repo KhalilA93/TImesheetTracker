@@ -6,8 +6,10 @@ const timesheetEntries = require('./timesheetEntries');
 const alarms = require('./alarms');
 const settings = require('./settings');
 const dashboard = require('./dashboard');
+const auth = require('./auth');
 
 // Mount routes
+router.use('/auth', auth);
 router.use('/timesheet-entries', timesheetEntries);
 router.use('/alarms', alarms);
 router.use('/settings', settings);
