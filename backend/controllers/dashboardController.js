@@ -1,5 +1,66 @@
 const { TimesheetEntry, UserSettings, Alarm } = require('../models');
 
+// Simple in-memory cache for last recalculation times
+const recalculationCache = new Map();
+
+// Helper function to recalculate earnings for user's timesheet entries
+const recalculateUserEarnings = async (userId) => {
+  try {
+    const now = Date.now();
+    const cacheKey = userId.toString();
+    const lastRecalculation = recalculationCache.get(cacheKey) || 0;
+    
+    // Only recalculate if it's been more than 5 minutes since last recalculation
+    if (now - lastRecalculation < 5 * 60 * 1000) {
+      return 0; // Skip recalculation
+    }
+    
+    // Get user settings for pay rate
+    const settings = await UserSettings.getSettings(userId);
+    
+    // Find all timesheet entries for this user that might need recalculation
+    // Only check entries that might be affected by pay rate changes
+    const entries = await TimesheetEntry.find({ 
+      owner: userId,
+      // Optional: Only recalculate recent entries or entries with no pay rate override
+      $or: [
+        { payRateOverride: { $exists: false } },
+        { payRateOverride: null },
+        { payRateOverride: 0 }
+      ]
+    });
+    
+    let updatedCount = 0;
+    
+    for (const entry of entries) {
+      let payRate = entry.payRateOverride || settings.defaultPayRate;
+      const newCalculatedPay = Number((entry.hoursWorked * payRate).toFixed(2));
+      
+      // Update only if the value has changed (avoid unnecessary saves)
+      if (Math.abs(entry.calculatedPay - newCalculatedPay) > 0.01) {
+        entry.calculatedPay = newCalculatedPay;
+        await entry.save();
+        updatedCount++;
+      }
+    }
+    
+    // Update cache with current time
+    recalculationCache.set(cacheKey, now);
+    
+    return updatedCount;
+  } catch (error) {
+    console.error('Error recalculating user earnings:', error);
+    return 0;
+  }
+};
+
+// Helper function to force recalculation for a user (clears cache)
+const forceRecalculateUserEarnings = async (userId) => {
+  const cacheKey = userId.toString();
+  recalculationCache.delete(cacheKey); // Clear cache to force recalculation
+  return await recalculateUserEarnings(userId);
+};
+
 // Get dashboard overview data
 const getDashboardOverview = async (req, res) => {
   try {
@@ -9,6 +70,9 @@ const getDashboardOverview = async (req, res) => {
     thisWeekStart.setDate(today.getDate() - today.getDay());
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // Recalculate earnings for this user's entries to ensure accuracy
+    const updatedCount = await recalculateUserEarnings(req.user._id);
+    
     // Get totals for different periods (user-specific)
     const [todayTotals, weekTotals, monthTotals, settings] = await Promise.all([
       TimesheetEntry.getTotalsForDateRange(today, now, req.user._id),
@@ -42,6 +106,11 @@ const getDashboardOverview = async (req, res) => {
         defaultPayRate: settings.defaultPayRate,
         formattedPayRate: settings.formattedPayRate,
         currency: settings.currency
+      },
+      // Optional: include recalculation info for debugging
+      recalculationInfo: {
+        entriesUpdated: updatedCount,
+        lastRecalculated: new Date().toISOString()
       }
     });
   } catch (error) {
@@ -357,5 +426,6 @@ module.exports = {
   getWeeklySummary,
   getMonthlySummary,
   getProductivityInsights,
-  getAlarmStatistics
+  getAlarmStatistics,
+  forceRecalculateUserEarnings
 };

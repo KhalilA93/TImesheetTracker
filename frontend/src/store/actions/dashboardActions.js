@@ -6,6 +6,11 @@ export const fetchDashboardOverview = () => async (dispatch) => {
   try {
     const response = await dashboardApi.getOverview();
     
+    // Log recalculation info if available
+    if (response.data.recalculationInfo) {
+      console.log(`🔄 Dashboard recalculated ${response.data.recalculationInfo.entriesUpdated} entries at ${response.data.recalculationInfo.lastRecalculated}`);
+    }
+    
     // Transform the API response to match the expected format
     const { totals } = response.data;
     const transformedData = {

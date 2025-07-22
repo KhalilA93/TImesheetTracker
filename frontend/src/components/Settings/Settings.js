@@ -13,12 +13,9 @@ const Settings = () => {
   // State for other settings (backend)
   const [formData, setFormData] = useState({
     defaultPayRate: 30,
-    overtimeThreshold: 8,
-    overtimeMultiplier: 1.5,
     timeFormat: '12h',
     colorScheme: {
       regular: '#3174ad',
-      overtime: '#dc3545',
       holiday: '#28a745',
       sick: '#ffc107',
       vacation: '#17a2b8',
@@ -129,32 +126,6 @@ const Settings = () => {
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="overtimeThreshold">Overtime Threshold (hours)</label>
-              <input
-                type="number"
-                id="overtimeThreshold"
-                name="overtimeThreshold"
-                value={formData.overtimeThreshold}
-                onChange={handleInputChange}
-                min="0"
-                step="0.5"
-                required
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <label htmlFor="overtimeMultiplier">Overtime Multiplier</label>
-            <input
-              type="number"
-              id="overtimeMultiplier"
-              name="overtimeMultiplier"
-              value={formData.overtimeMultiplier}
-              onChange={handleInputChange}
-              min="1"
-              step="0.1"
-              required
-            />
           </div>
         </section>
 

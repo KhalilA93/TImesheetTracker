@@ -62,9 +62,6 @@ router.get('/', (req, res) => {
         'PUT /notifications': 'Update notification settings',
         'GET /colors': 'Get color scheme',
         'PUT /colors': 'Update color scheme',
-        'GET /overtime': 'Get overtime settings',
-        'PUT /overtime': 'Update overtime settings',
-        'POST /calculate-pay': 'Calculate pay with overtime',
         'POST /reset': 'Reset settings to defaults',
         'GET /export': 'Export settings',
         'POST /import': 'Import settings'

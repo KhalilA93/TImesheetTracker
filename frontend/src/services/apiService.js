@@ -68,9 +68,6 @@ export const settingsApi = {
   // Update pay rate
   updatePayRate: (payRate) => api.patch('/settings/pay-rate', { defaultPayRate: payRate }),
   
-  // Update overtime settings
-  updateOvertimeSettings: (settings) => api.patch('/settings/overtime', settings),
-  
   // Update notification settings
   updateNotificationSettings: (settings) => api.patch('/settings/notifications', settings)
 };

@@ -14,11 +14,16 @@ export const fetchEntries = () => async (dispatch) => {
 export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
   dispatch({ type: 'TIMESHEET_LOADING' });
   try {
+    console.log('Fetching calendar events:', { startDate, endDate });
     const response = await timesheetApi.getCalendarEntries(startDate, endDate);
+    
+    console.log('Calendar API response:', response.data);
     
     // Extract the events array from the response and convert date strings to Date objects
     const rawEvents = response.data.events || [];
     
+    console.log(`Processing ${rawEvents.length} raw events`);
+
     const events = rawEvents.map(event => {
       // Ensure start and end are valid Date objects
       const startDate = new Date(event.start);
@@ -26,16 +31,26 @@ export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
       
       // Validate dates
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.error('Invalid date in event:', event);
+        console.warn('Invalid date in event:', event);
         return null;
       }
       
+      // Ensure all required fields are present with defaults
       return {
         ...event,
         start: startDate,
-        end: endDate
+        end: endDate,
+        title: event.title || event.project || event.description || 'Work Entry',
+        hoursWorked: event.hoursWorked || 0,
+        calculatedPay: event.calculatedPay || 0,
+        category: event.category || 'regular',
+        status: event.status || 'confirmed',
+        project: event.project || '',
+        description: event.description || ''
       };
     }).filter(Boolean); // Remove null events
+    
+    console.log(`Processed ${events.length} valid events`);
     
     dispatch({ type: 'FETCH_CALENDAR_EVENTS_SUCCESS', payload: events });
   } catch (error) {
@@ -48,8 +63,37 @@ export const createEntry = (entry) => async (dispatch) => {
   dispatch({ type: 'TIMESHEET_LOADING' });
   try {
     const response = await timesheetApi.createEntry(entry);
-    dispatch({ type: 'CREATE_ENTRY_SUCCESS', payload: response.data });
-    return response.data;
+    const newEntry = response.data;
+    
+    // Dispatch the creation success
+    dispatch({ type: 'CREATE_ENTRY_SUCCESS', payload: newEntry });
+    
+    // Also add the new entry to calendar events if it has valid dates
+    if (newEntry.startTime && newEntry.endTime) {
+      const startDate = new Date(newEntry.startTime);
+      const endDate = new Date(newEntry.endTime);
+      
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const calendarEvent = {
+          id: newEntry._id.toString(),
+          title: newEntry.project || newEntry.description || 'Work Entry',
+          start: startDate,
+          end: endDate,
+          hoursWorked: newEntry.hoursWorked || 0,
+          calculatedPay: newEntry.calculatedPay || 0,
+          category: newEntry.category || 'regular',
+          status: newEntry.status || 'confirmed',
+          project: newEntry.project || '',
+          description: newEntry.description || '',
+          payRateOverride: newEntry.payRateOverride
+        };
+        
+        // Add to calendar events
+        dispatch({ type: 'ADD_CALENDAR_EVENT', payload: calendarEvent });
+      }
+    }
+    
+    return newEntry;
   } catch (error) {
     dispatch({ type: 'TIMESHEET_ERROR', payload: error.message });
     throw error;

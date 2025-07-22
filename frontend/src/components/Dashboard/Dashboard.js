@@ -53,7 +53,7 @@ const Dashboard = () => {
           color="#ffc107"
         />
         <StatCard
-          title="Average Daily"
+          title="Weekly Average"
           hours={(overview?.weekHours || 0) / 7}
           pay={(overview?.weekPay || 0) / 7}
           icon="⚡"

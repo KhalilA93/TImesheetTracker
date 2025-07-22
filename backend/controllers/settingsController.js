@@ -1,4 +1,5 @@
 const { UserSettings } = require('../models');
+const { forceRecalculateUserEarnings } = require('./dashboardController');
 
 // Get user settings (user-specific)
 const getSettings = async (req, res) => {
@@ -17,6 +18,10 @@ const updateSettings = async (req, res) => {
     
     let settings = await UserSettings.getSettings(req.user._id);
     
+    // Check if pay rate is being updated
+    const payRateChanged = updates.defaultPayRate !== undefined && 
+                          updates.defaultPayRate !== settings.defaultPayRate;
+    
     // Update settings with provided values
     Object.keys(updates).forEach(key => {
       if (updates[key] !== undefined) {
@@ -34,9 +39,20 @@ const updateSettings = async (req, res) => {
 
     await settings.save();
 
+    let recalculationInfo = null;
+    // If pay rate was changed, force recalculation of timesheet entries
+    if (payRateChanged) {
+      const recalculatedCount = await forceRecalculateUserEarnings(req.user._id);
+      recalculationInfo = {
+        entriesRecalculated: recalculatedCount,
+        message: `${recalculatedCount} timesheet entries were recalculated with the new pay rate`
+      };
+    }
+
     res.json({
       message: 'Settings updated successfully',
-      settings
+      settings,
+      ...(recalculationInfo && { recalculationInfo })
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -100,12 +116,19 @@ const updatePayRate = async (req, res) => {
       return res.status(400).json({ message: 'Valid pay rate is required' });
     }
 
-    const settings = await UserSettings.updateSetting('defaultPayRate', payRate);
+    const settings = await UserSettings.updateSetting(req.user._id, 'defaultPayRate', payRate);
+
+    // Force recalculation of all timesheet entries since pay rate changed
+    const recalculatedCount = await forceRecalculateUserEarnings(req.user._id);
 
     res.json({
       message: 'Pay rate updated successfully',
       defaultPayRate: settings.defaultPayRate,
-      formattedPayRate: settings.formattedPayRate
+      formattedPayRate: settings.formattedPayRate,
+      recalculationInfo: {
+        entriesRecalculated: recalculatedCount,
+        message: `${recalculatedCount} timesheet entries were recalculated with the new pay rate`
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Error updating pay rate', error: error.message });
@@ -167,68 +190,6 @@ const updateColorScheme = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error updating color scheme', error: error.message });
-  }
-};
-
-// Get overtime settings
-const getOvertimeSettings = async (req, res) => {
-  try {
-    const settings = await UserSettings.getSettings();
-    res.json({
-      overtimeThreshold: settings.overtimeThreshold,
-      overtimeMultiplier: settings.overtimeMultiplier,
-      weeklyOvertimeThreshold: settings.weeklyOvertimeThreshold
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching overtime settings', error: error.message });
-  }
-};
-
-// Update overtime settings
-const updateOvertimeSettings = async (req, res) => {
-  try {
-    const { overtimeThreshold, overtimeMultiplier, weeklyOvertimeThreshold } = req.body;
-    
-    const settings = await UserSettings.getSettings();
-    
-    if (overtimeThreshold !== undefined) settings.overtimeThreshold = overtimeThreshold;
-    if (overtimeMultiplier !== undefined) settings.overtimeMultiplier = overtimeMultiplier;
-    if (weeklyOvertimeThreshold !== undefined) settings.weeklyOvertimeThreshold = weeklyOvertimeThreshold;
-    
-    await settings.save();
-
-    res.json({
-      message: 'Overtime settings updated successfully',
-      overtimeThreshold: settings.overtimeThreshold,
-      overtimeMultiplier: settings.overtimeMultiplier,
-      weeklyOvertimeThreshold: settings.weeklyOvertimeThreshold
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating overtime settings', error: error.message });
-  }
-};
-
-// Calculate pay with overtime
-const calculatePayWithOvertime = async (req, res) => {
-  try {
-    const { hoursWorked, payRate } = req.body;
-
-    if (typeof hoursWorked !== 'number' || hoursWorked < 0) {
-      return res.status(400).json({ message: 'Valid hours worked is required' });
-    }
-
-    const settings = await UserSettings.getSettings();
-    const totalPay = settings.calculatePayWithOvertime(hoursWorked, payRate);
-
-    res.json({
-      hoursWorked,
-      payRate: payRate || settings.defaultPayRate,
-      totalPay,
-      overtimeThreshold: settings.overtimeThreshold,
-      overtimeMultiplier: settings.overtimeMultiplier
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error calculating pay with overtime', error: error.message });
   }
 };
 
@@ -314,9 +275,6 @@ module.exports = {
   updateNotificationSettings,
   getColorScheme,
   updateColorScheme,
-  getOvertimeSettings,
-  updateOvertimeSettings,
-  calculatePayWithOvertime,
   resetSettings,
   exportSettings,
   importSettings

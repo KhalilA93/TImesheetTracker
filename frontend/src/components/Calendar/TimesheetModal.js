@@ -23,7 +23,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
   // Initialize form data when modal opens
   useEffect(() => {
     if (event) {
-      // Editing existing event
+      // Editing existing event - get data from event object
       setFormData({
         date: moment(event.start).format('YYYY-MM-DD'),
         startTime: moment(event.start).format('HH:mm'),
@@ -40,6 +40,18 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
         date: moment(slot.start).format('YYYY-MM-DD'),
         startTime: moment(slot.start).format('HH:mm'),
         endTime: moment(slot.end).format('HH:mm'),
+        description: '',
+        project: '',
+        category: 'regular',
+        payRateOverride: '',
+        status: 'confirmed'
+      });
+    } else {
+      // Default empty form
+      setFormData({
+        date: moment().format('YYYY-MM-DD'),
+        startTime: moment().format('HH:mm'),
+        endTime: moment().add(1, 'hour').format('HH:mm'),
         description: '',
         project: '',
         category: 'regular',
@@ -89,9 +101,12 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
     // Create ISO date strings
     const startDateTime = moment(`${formData.date} ${formData.startTime}`).toISOString();
     const endDateTime = moment(`${formData.date} ${formData.endTime}`).toISOString();
+    
+    // Create a proper date object for the date field (just the date part)
+    const entryDate = moment(formData.date).startOf('day').toISOString();
 
     const entryData = {
-      date: formData.date,
+      date: entryDate, // Send as ISO string that backend will convert to Date
       startTime: startDateTime,
       endTime: endDateTime,
       description: formData.description,
@@ -200,7 +215,6 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
                 onChange={handleInputChange}
               >
                 <option value="regular">Regular</option>
-                <option value="overtime">Overtime</option>
                 <option value="holiday">Holiday</option>
                 <option value="sick">Sick</option>
                 <option value="vacation">Vacation</option>

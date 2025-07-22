@@ -130,7 +130,7 @@
           }
         },
         {
-          "name": "Create Overtime Entry",
+          "name": "Create Extended Work Entry",
           "request": {
             "method": "POST",
             "header": [
@@ -141,7 +141,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"date\": \"2025-06-11\",\n  \"startTime\": \"2025-06-11T18:00:00.000Z\",\n  \"endTime\": \"2025-06-11T21:00:00.000Z\",\n  \"description\": \"Emergency bug fixes and deployment\",\n  \"project\": \"Client Website\",\n  \"category\": \"overtime\",\n  \"payRateOverride\": 45,\n  \"status\": \"confirmed\"\n}"
+              "raw": "{\n  \"date\": \"2025-06-11\",\n  \"startTime\": \"2025-06-11T18:00:00.000Z\",\n  \"endTime\": \"2025-06-11T21:00:00.000Z\",\n  \"description\": \"Emergency bug fixes and deployment\",\n  \"project\": \"Client Website\",\n  \"category\": \"regular\",\n  \"payRateOverride\": 45,\n  \"status\": \"confirmed\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/timesheet-entries",

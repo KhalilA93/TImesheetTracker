@@ -103,23 +103,6 @@ const userSettingsSchema = new mongoose.Schema({
     min: 0.1
   },
   
-  // Overtime configuration
-  overtimeThreshold: {
-    type: Number,
-    default: 8, // Hours per day before overtime
-    min: 0
-  },
-  overtimeMultiplier: {
-    type: Number,
-    default: 1.5, // 1.5x pay for overtime
-    min: 1
-  },
-  weeklyOvertimeThreshold: {
-    type: Number,
-    default: 40, // Hours per week before overtime
-    min: 0
-  },
-  
   // Notification preferences
   notifications: {
     browserNotifications: {
@@ -158,10 +141,6 @@ const userSettingsSchema = new mongoose.Schema({
     regular: {
       type: String,
       default: '#3174ad'
-    },
-    overtime: {
-      type: String,
-      default: '#f39c12'
     },
     holiday: {
       type: String,
@@ -300,22 +279,10 @@ userSettingsSchema.statics.updateSetting = async function(userId, key, value) {
   return await settings.save();
 };
 
-// Instance method to calculate pay with overtime
-userSettingsSchema.methods.calculatePayWithOvertime = function(hoursWorked, payRate = null) {
+// Instance method to calculate pay (simple hourly rate)
+userSettingsSchema.methods.calculatePay = function(hoursWorked, payRate = null) {
   const rate = payRate || this.defaultPayRate;
-  let totalPay = 0;
-  
-  if (hoursWorked <= this.overtimeThreshold) {
-    totalPay = hoursWorked * rate;
-  } else {
-    const regularHours = this.overtimeThreshold;
-    const overtimeHours = hoursWorked - this.overtimeThreshold;
-    const overtimeRate = rate * this.overtimeMultiplier;
-    
-    totalPay = (regularHours * rate) + (overtimeHours * overtimeRate);
-  }
-  
-  return totalPay;
+  return hoursWorked * rate;
 };
 
 // Instance method to get color for category

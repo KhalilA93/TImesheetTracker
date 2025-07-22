@@ -67,19 +67,59 @@ const getCalendarEntries = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required' });
     }
 
+    // Parse the dates and ensure they cover the full range
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+    
+    // Ensure we capture entries from the start of startDate to the end of endDate
+    const queryStartDate = new Date(startDateTime);
+    queryStartDate.setHours(0, 0, 0, 0);
+    
+    const queryEndDate = new Date(endDateTime);
+    queryEndDate.setHours(23, 59, 59, 999);
+
+    console.log(`Calendar query: ${queryStartDate.toISOString()} to ${queryEndDate.toISOString()}`);
+
+    // Use a more flexible query that matches entries whose dates fall within the range
+    // We'll use startTime for the range check since it's more precise
     const entries = await TimesheetEntry.find({
       owner: req.user._id,
-      date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      }
-    });    // Transform entries for calendar format
+      $or: [
+        // Match by date field (for entries where date is the primary field)
+        {
+          date: {
+            $gte: queryStartDate,
+            $lte: queryEndDate
+          }
+        },
+        // Also match by startTime (for more precise filtering)
+        {
+          startTime: {
+            $gte: queryStartDate,
+            $lte: queryEndDate
+          }
+        }
+      ]
+    }).sort({ startTime: 1 });
+
+    console.log(`Found ${entries.length} entries for calendar`);
+
+    // Transform entries for calendar format
     const calendarEvents = entries.map(entry => ({
       id: entry._id.toString(),
       title: entry.project || entry.description || 'Work Entry',
-      start: new Date(entry.startTime),
-      end: new Date(entry.endTime),
+      start: entry.startTime, // Send as ISO string, frontend will convert to Date
+      end: entry.endTime,     // Send as ISO string, frontend will convert to Date
       allDay: false,
+      // Main event properties (for calendar component)
+      hoursWorked: entry.hoursWorked,
+      calculatedPay: entry.calculatedPay,
+      project: entry.project,
+      category: entry.category,
+      description: entry.description,
+      status: entry.status,
+      payRateOverride: entry.payRateOverride,
+      // Resource data for detailed view
       resource: {
         entryId: entry._id.toString(),
         hoursWorked: entry.hoursWorked,
@@ -87,10 +127,12 @@ const getCalendarEntries = async (req, res) => {
         project: entry.project,
         category: entry.category,
         description: entry.description,
-        status: entry.status
+        status: entry.status,
+        payRateOverride: entry.payRateOverride,
+        date: entry.date
       },
-      backgroundColor: entry.color || '#007bff',
-      borderColor: entry.color || '#007bff'
+      // Color will be determined by frontend based on category
+      color: entry.category || 'regular'
     }));
 
     res.json({ events: calendarEvents });

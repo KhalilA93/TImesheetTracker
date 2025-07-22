@@ -10,9 +10,6 @@ const {
   updateNotificationSettings,
   getColorScheme,
   updateColorScheme,
-  getOvertimeSettings,
-  updateOvertimeSettings,
-  calculatePayWithOvertime,
   resetSettings,
   exportSettings,
   importSettings
@@ -45,15 +42,6 @@ router.get('/colors', getColorScheme);
 
 // PUT /api/settings/colors - Update color scheme
 router.put('/colors', updateColorScheme);
-
-// GET /api/settings/overtime - Get overtime settings
-router.get('/overtime', getOvertimeSettings);
-
-// PUT /api/settings/overtime - Update overtime settings
-router.put('/overtime', updateOvertimeSettings);
-
-// POST /api/settings/calculate-pay - Calculate pay with overtime
-router.post('/calculate-pay', calculatePayWithOvertime);
 
 // POST /api/settings/reset - Reset settings to defaults
 router.post('/reset', resetSettings);

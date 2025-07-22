@@ -53,7 +53,7 @@ const timesheetEntrySchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['regular', 'overtime', 'holiday', 'sick', 'vacation', 'training', 'meeting'],
+    enum: ['regular', 'holiday', 'sick', 'vacation', 'training', 'meeting'],
     default: 'regular'
   },
   
@@ -140,11 +140,20 @@ timesheetEntrySchema.pre('save', async function(next) {
   if (this.isModified('hoursWorked') || this.isModified('payRateOverride') || !this.calculatedPay || this.isNew) {
     let payRate = this.payRateOverride;
     
-    // If no override, get global pay rate
+    // If no override, get user-specific pay rate
     if (!payRate) {
       const UserSettings = mongoose.model('UserSettings');
-      const settings = await UserSettings.findOne() || {};
-      payRate = settings.defaultPayRate || 0;
+      try {
+        if (this.owner) {
+          const settings = await UserSettings.getSettings(this.owner);
+          payRate = settings.defaultPayRate || 15.00; // Fallback to default rate
+        } else {
+          payRate = 15.00; // Default fallback if no user specified
+        }
+      } catch (error) {
+        // Fallback to default rate if there's an error
+        payRate = 15.00;
+      }
     }
     
     this.calculatedPay = this.hoursWorked * payRate;

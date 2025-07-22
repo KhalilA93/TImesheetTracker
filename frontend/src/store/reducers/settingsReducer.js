@@ -1,12 +1,9 @@
 const initialState = {
   settings: {
     defaultPayRate: 30,
-    overtimeThreshold: 8,
-    overtimeMultiplier: 1.5,
     timeFormat: '12h',
     colorScheme: {
       regular: '#3174ad',
-      overtime: '#dc3545',
       holiday: '#28a745',
       sick: '#ffc107',
       vacation: '#17a2b8',
