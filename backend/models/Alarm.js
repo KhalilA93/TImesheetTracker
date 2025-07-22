@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
 
-const alarmSchema = new mongoose.Schema({  // Link to timesheet entry (optional for custom alarms)
+const alarmSchema = new mongoose.Schema({
+  // User reference - each alarm belongs to a user
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  
+  // Link to timesheet entry (optional for custom alarms)
   timesheetEntryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TimesheetEntry',
@@ -149,27 +158,41 @@ alarmSchema.pre('save', function(next) {
   next();
 });
 
-// Static method to get active alarms that should trigger
-alarmSchema.statics.getTriggerable = function() {
+// Static method to get active alarms that should trigger for a user
+alarmSchema.statics.getTriggerable = function(userId = null) {
   const now = new Date();
-  return this.find({
+  const query = {
     status: 'active',
     $or: [
       { alarmTime: { $lte: now }, snoozeUntil: null },
       { snoozeUntil: { $lte: now } }
     ]
-  }).populate('timesheetEntryId');
+  };
+  
+  // Add user filter if userId is provided
+  if (userId) {
+    query.owner = userId;
+  }
+  
+  return this.find(query).populate('timesheetEntryId');
 };
 
-// Static method to get upcoming alarms
-alarmSchema.statics.getUpcoming = function(hoursAhead = 24) {
+// Static method to get upcoming alarms for a user
+alarmSchema.statics.getUpcoming = function(hoursAhead = 24, userId = null) {
   const now = new Date();
   const futureTime = new Date(now.getTime() + (hoursAhead * 60 * 60 * 1000));
   
-  return this.find({
+  const query = {
     status: 'active',
     alarmTime: { $gte: now, $lte: futureTime }
-  }).populate('timesheetEntryId').sort({ alarmTime: 1 });
+  };
+  
+  // Add user filter if userId is provided
+  if (userId) {
+    query.owner = userId;
+  }
+  
+  return this.find(query).populate('timesheetEntryId').sort({ alarmTime: 1 });
 };
 
 // Instance method to trigger alarm

@@ -1,9 +1,9 @@
 const { UserSettings } = require('../models');
 
-// Get user settings (singleton)
+// Get user settings (user-specific)
 const getSettings = async (req, res) => {
   try {
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     res.json(settings);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching settings', error: error.message });
@@ -15,7 +15,7 @@ const updateSettings = async (req, res) => {
   try {
     const updates = req.body;
     
-    let settings = await UserSettings.getSettings();
+    let settings = await UserSettings.getSettings(req.user._id);
     
     // Update settings with provided values
     Object.keys(updates).forEach(key => {

@@ -1,6 +1,6 @@
 const { Alarm, TimesheetEntry } = require('../models');
 
-// Get all alarms with optional filtering
+// Get all alarms with optional filtering (user-specific)
 const getAllAlarms = async (req, res) => {
   try {
     const {
@@ -11,7 +11,8 @@ const getAllAlarms = async (req, res) => {
       hoursAhead = 24
     } = req.query;
 
-    let query = Alarm.find();
+    // Start with user-specific query
+    let query = Alarm.find({ owner: req.user._id });
 
     // Apply filters
     if (status) {
@@ -101,9 +102,12 @@ const createAlarm = async (req, res) => {
 
     // If timesheetEntryId is provided, validate and calculate alarm time
     if (timesheetEntryId) {
-      const timesheetEntry = await TimesheetEntry.findById(timesheetEntryId);
+      const timesheetEntry = await TimesheetEntry.findOne({ 
+        _id: timesheetEntryId, 
+        owner: req.user._id 
+      });
       if (!timesheetEntry) {
-        return res.status(404).json({ message: 'Timesheet entry not found' });
+        return res.status(404).json({ message: 'Timesheet entry not found or access denied' });
       }
 
       // Calculate alarm time based on type and reminder minutes
@@ -122,6 +126,7 @@ const createAlarm = async (req, res) => {
     }
 
     const alarm = new Alarm({
+      owner: req.user._id, // Associate alarm with current user
       timesheetEntryId: timesheetEntryId || null,
       alarmTime: calculatedAlarmTime,
       reminderMinutes,

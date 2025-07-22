@@ -18,6 +18,10 @@ const {
   importSettings
 } = require('../controllers/settingsController');
 
+// Protect all settings routes
+const auth = require('../middleware/auth');
+router.use(auth);
+
 // GET /api/settings - Get all settings
 router.get('/', getSettings);
 

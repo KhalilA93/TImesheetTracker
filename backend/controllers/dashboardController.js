@@ -9,25 +9,25 @@ const getDashboardOverview = async (req, res) => {
     thisWeekStart.setDate(today.getDate() - today.getDay());
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Get totals for different periods
+    // Get totals for different periods (user-specific)
     const [todayTotals, weekTotals, monthTotals, settings] = await Promise.all([
-      TimesheetEntry.getTotalsForDateRange(today, now),
-      TimesheetEntry.getTotalsForDateRange(thisWeekStart, now),
-      TimesheetEntry.getTotalsForDateRange(thisMonthStart, now),
-      UserSettings.getSettings()
+      TimesheetEntry.getTotalsForDateRange(today, now, req.user._id),
+      TimesheetEntry.getTotalsForDateRange(thisWeekStart, now, req.user._id),
+      TimesheetEntry.getTotalsForDateRange(thisMonthStart, now, req.user._id),
+      UserSettings.getSettings(req.user._id)
     ]);
 
-    // Get recent entries
-    const recentEntries = await TimesheetEntry.find()
+    // Get recent entries (user-specific)
+    const recentEntries = await TimesheetEntry.find({ owner: req.user._id })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('date startTime endTime hoursWorked calculatedPay project category status');
 
-    // Get upcoming alarms
-    const upcomingAlarms = await Alarm.getUpcoming(24);
+    // Get upcoming alarms (user-specific)
+    const upcomingAlarms = await Alarm.getUpcoming(24, req.user._id);
 
-    // Get active alarms that should trigger
-    const activeAlarms = await Alarm.getTriggerable();
+    // Get active alarms that should trigger (user-specific)
+    const activeAlarms = await Alarm.getTriggerable(req.user._id);
 
     res.json({
       totals: {
@@ -66,10 +66,11 @@ const getWeeklySummary = async (req, res) => {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 
-    // Get daily breakdown for the week
+    // Get daily breakdown for the week (user-specific)
     const dailyBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: weekStart, $lte: weekEnd },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -91,10 +92,11 @@ const getWeeklySummary = async (req, res) => {
       }
     ]);
 
-    // Get project breakdown for the week
+    // Get project breakdown for the week (user-specific)
     const projectBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: weekStart, $lte: weekEnd },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -112,8 +114,8 @@ const getWeeklySummary = async (req, res) => {
       }
     ]);
 
-    // Get week totals
-    const weekTotals = await TimesheetEntry.getTotalsForDateRange(weekStart, weekEnd);
+    // Get week totals (user-specific)
+    const weekTotals = await TimesheetEntry.getTotalsForDateRange(weekStart, weekEnd, req.user._id);
 
     res.json({
       weekStart,
@@ -142,10 +144,11 @@ const getMonthlySummary = async (req, res) => {
       monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     }
 
-    // Get weekly breakdown for the month
+    // Get weekly breakdown for the month (user-specific)
     const weeklyBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: monthStart, $lte: monthEnd },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -166,10 +169,11 @@ const getMonthlySummary = async (req, res) => {
       }
     ]);
 
-    // Get category breakdown for the month
+    // Get category breakdown for the month (user-specific)
     const categoryBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: monthStart, $lte: monthEnd },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -187,8 +191,8 @@ const getMonthlySummary = async (req, res) => {
       }
     ]);
 
-    // Get month totals
-    const monthTotals = await TimesheetEntry.getTotalsForDateRange(monthStart, monthEnd);
+    // Get month totals (user-specific)
+    const monthTotals = await TimesheetEntry.getTotalsForDateRange(monthStart, monthEnd, req.user._id);
 
     res.json({
       monthStart,
@@ -210,10 +214,11 @@ const getProductivityInsights = async (req, res) => {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - parseInt(days));
 
-    // Average hours per day
+    // Average hours per day (user-specific)
     const dailyAverages = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: startDate, $lte: endDate },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -235,10 +240,11 @@ const getProductivityInsights = async (req, res) => {
       }
     ]);
 
-    // Most productive hours
+    // Most productive hours (user-specific)
     const hourlyBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: startDate, $lte: endDate },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -255,10 +261,11 @@ const getProductivityInsights = async (req, res) => {
       }
     ]);
 
-    // Day of week patterns
+    // Day of week patterns (user-specific)
     const dayOfWeekBreakdown = await TimesheetEntry.aggregate([
       {
         $match: {
+          owner: req.user._id,
           date: { $gte: startDate, $lte: endDate },
           status: { $in: ['confirmed', 'submitted', 'approved'] }
         }
@@ -300,6 +307,7 @@ const getAlarmStatistics = async (req, res) => {
     const alarmStats = await Alarm.aggregate([
       {
         $match: {
+          user: req.user._id,
           createdAt: { $gte: startDate, $lte: endDate }
         }
       },
@@ -312,10 +320,11 @@ const getAlarmStatistics = async (req, res) => {
       }
     ]);
 
-    // Alarm effectiveness (triggered vs dismissed ratio)
+    // Alarm effectiveness (triggered vs dismissed ratio) (user-specific)
     const effectiveness = await Alarm.aggregate([
       {
         $match: {
+          user: req.user._id,
           createdAt: { $gte: startDate, $lte: endDate },
           status: { $in: ['triggered', 'dismissed'] }
         }

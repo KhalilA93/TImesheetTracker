@@ -76,7 +76,7 @@ const getCalendarEntries = async (req, res) => {
     });    // Transform entries for calendar format
     const calendarEvents = entries.map(entry => ({
       id: entry._id.toString(),
-      title: entry.title,
+      title: entry.project || entry.description || 'Work Entry',
       start: new Date(entry.startTime),
       end: new Date(entry.endTime),
       allDay: false,
@@ -89,8 +89,8 @@ const getCalendarEntries = async (req, res) => {
         description: entry.description,
         status: entry.status
       },
-      backgroundColor: entry.color,
-      borderColor: entry.color
+      backgroundColor: entry.color || '#007bff',
+      borderColor: entry.color || '#007bff'
     }));
 
     res.json({ events: calendarEvents });

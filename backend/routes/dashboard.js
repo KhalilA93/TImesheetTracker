@@ -8,6 +8,10 @@ const {
   getAlarmStatistics
 } = require('../controllers/dashboardController');
 
+// Protect all dashboard routes
+const auth = require('../middleware/auth');
+router.use(auth);
+
 // GET /api/dashboard/overview - Get dashboard overview
 router.get('/overview', getDashboardOverview);
 

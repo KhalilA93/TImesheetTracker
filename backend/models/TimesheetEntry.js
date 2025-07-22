@@ -164,13 +164,20 @@ timesheetEntrySchema.statics.getEntriesForDateRange = function(startDate, endDat
 };
 
 // Static method to calculate total hours and pay for date range
-timesheetEntrySchema.statics.getTotalsForDateRange = async function(startDate, endDate) {
+timesheetEntrySchema.statics.getTotalsForDateRange = async function(startDate, endDate, userId = null) {
+  const matchFilter = {
+    date: { $gte: startDate, $lte: endDate },
+    status: { $in: ['confirmed', 'submitted', 'approved'] }
+  };
+  
+  // Add user filter if userId is provided
+  if (userId) {
+    matchFilter.owner = userId;
+  }
+  
   const result = await this.aggregate([
     {
-      $match: {
-        date: { $gte: startDate, $lte: endDate },
-        status: { $in: ['confirmed', 'submitted', 'approved'] }
-      }
+      $match: matchFilter
     },
     {
       $group: {

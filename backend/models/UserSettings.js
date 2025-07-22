@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
 
 const userSettingsSchema = new mongoose.Schema({
+  // User reference - each settings document belongs to a user
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true, // Each user can only have one settings document
+    index: true
+  },
+  
   // Pay rate configuration
   defaultPayRate: {
     type: Number,
@@ -253,19 +262,27 @@ userSettingsSchema.virtual('businessHoursRange').get(function() {
   return `${this.businessHoursStart} - ${this.businessHoursEnd}`;
 });
 
-// Static method to get or create settings
-userSettingsSchema.statics.getSettings = async function() {
-  let settings = await this.findOne();
+// Static method to get or create settings for a user
+userSettingsSchema.statics.getSettings = async function(userId) {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+  
+  let settings = await this.findOne({ user: userId });
   if (!settings) {
-    settings = new this();
+    settings = new this({ user: userId });
     await settings.save();
   }
   return settings;
 };
 
-// Static method to update specific setting
-userSettingsSchema.statics.updateSetting = async function(key, value) {
-  let settings = await this.getSettings();
+// Static method to update specific setting for a user
+userSettingsSchema.statics.updateSetting = async function(userId, key, value) {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+  
+  let settings = await this.getSettings(userId);
   
   // Handle nested keys like 'notifications.browserNotifications'
   const keys = key.split('.');
