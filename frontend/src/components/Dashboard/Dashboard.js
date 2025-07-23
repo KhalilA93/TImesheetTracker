@@ -2,8 +2,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDashboardOverview } from '../../store/actions/dashboardActions';
 import StatCard from './StatCard';
-import WeeklyChart from './WeeklyChart';
-import ProjectBreakdown from './ProjectBreakdown';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -59,28 +57,6 @@ const Dashboard = () => {
           icon="⚡"
           color="#17a2b8"
         />
-      </div>
-
-      {/* Charts and Analytics */}
-      <div className="dashboard-content">
-        <div className="chart-section">
-          <WeeklyChart />
-        </div>
-        <div className="breakdown-section">
-          <ProjectBreakdown />
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="quick-actions">        <h3>Quick Actions</h3>
-        <div className="actions-grid">
-          <button className="action-btn" onClick={() => window.location.href = '/calendar'}>
-            📅 View Calendar
-          </button>
-          <button className="action-btn" onClick={() => window.location.href = '/settings'}>
-            ⚙️ Update Settings
-          </button>
-        </div>
       </div>
     </div>
   );
