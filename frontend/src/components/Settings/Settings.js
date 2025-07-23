@@ -288,14 +288,6 @@ const Settings = () => {
         </section>
 
         <div className="settings-actions">
-          <button type="button" onClick={() => {
-            console.log('=== THEME DEBUG ===');
-            console.log('themeData:', themeData);
-            console.log('localStorage:', localStorage.getItem('timesheet-theme'));
-            console.log('formData (no theme):', formData);
-          }} style={{marginRight: '10px', background: '#6c757d', color: 'white', padding: '10px 20px', borderRadius: '8px'}}>
-            Debug Theme
-          </button>
           <button type="submit" className="save-settings-btn">
             Save Settings
           </button>

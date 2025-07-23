@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "timesheet-tracker-frontend",
+  "version": "1.0.0",
+  "description": "React frontend for the TimeSheet Tracker application with modern UI, theme management, and account-bound settings",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",

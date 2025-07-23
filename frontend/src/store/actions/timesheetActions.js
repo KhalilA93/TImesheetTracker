@@ -14,15 +14,10 @@ export const fetchEntries = () => async (dispatch) => {
 export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
   dispatch({ type: 'TIMESHEET_LOADING' });
   try {
-    console.log('Fetching calendar events:', { startDate, endDate });
     const response = await timesheetApi.getCalendarEntries(startDate, endDate);
-    
-    console.log('Calendar API response:', response.data);
     
     // Extract the events array from the response and convert date strings to Date objects
     const rawEvents = response.data.events || [];
-    
-    console.log(`Processing ${rawEvents.length} raw events`);
 
     const events = rawEvents.map(event => {
       // Ensure start and end are valid Date objects
@@ -49,8 +44,6 @@ export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
         description: event.description || ''
       };
     }).filter(Boolean); // Remove null events
-    
-    console.log(`Processed ${events.length} valid events`);
     
     dispatch({ type: 'FETCH_CALENDAR_EVENTS_SUCCESS', payload: events });
   } catch (error) {

@@ -68,13 +68,6 @@ const CalendarView = () => {
   // Helper function to refresh calendar events for current view
   const refreshCalendarEvents = useCallback(() => {
     const { startDate, endDate } = getDateRange(date, view);
-    console.log(`Refreshing calendar events for ${view} view:`, { 
-      currentDate: date.toLocaleDateString(),
-      startDate: new Date(startDate).toLocaleString(), 
-      endDate: new Date(endDate).toLocaleString(),
-      startDateISO: startDate,
-      endDateISO: endDate
-    });
     dispatch(fetchCalendarEvents(startDate, endDate));
   }, [dispatch, date, view]);
 
@@ -119,8 +112,6 @@ const CalendarView = () => {
   // Handle saving timesheet entry
   const handleSaveEntry = async (entryData) => {
     try {
-      console.log('Saving entry data:', entryData);
-      
       let savedEntry;
       if (selectedEvent) {
         // Update existing entry
@@ -130,8 +121,6 @@ const CalendarView = () => {
         savedEntry = await dispatch(createEntry(entryData));
       }
       
-      console.log('Entry saved successfully:', savedEntry);
-      
       // Close modal
       setShowModal(false);
       setSelectedEvent(null);
@@ -140,7 +129,6 @@ const CalendarView = () => {
       // Force refresh the calendar events to ensure we have the latest data
       // Wait a bit longer to ensure backend processing is complete
       setTimeout(() => {
-        console.log('Force refreshing calendar after save...');
         refreshCalendarEvents();
       }, 1000);
       
@@ -153,10 +141,7 @@ const CalendarView = () => {
   // Handle deleting timesheet entry
   const handleDeleteEntry = async (entryId) => {
     try {
-      console.log('Deleting entry:', entryId);
       await dispatch(deleteEntry(entryId));
-      
-      console.log('Entry deleted successfully');
       
       // Close modal
       setShowModal(false);
@@ -164,7 +149,6 @@ const CalendarView = () => {
       
       // Force refresh to ensure deleted entry is removed from view
       setTimeout(() => {
-        console.log('Force refreshing calendar after delete...');
         refreshCalendarEvents();
       }, 500);
       
