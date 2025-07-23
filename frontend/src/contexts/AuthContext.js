@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as authService from '../services/authService';
+import { ThemeManager } from '../utils/themeManager';
 
 const AuthContext = createContext();
 
@@ -92,6 +93,14 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
+    // Clear theme data for current user
+    if (user && user._id) {
+      ThemeManager.clearUserTheme(user._id);
+    }
+    
+    // Reset theme to defaults
+    ThemeManager.resetTheme();
+    
     authService.logout();
     setUser(null);
     setError(null);

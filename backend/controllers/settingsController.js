@@ -138,7 +138,7 @@ const updatePayRate = async (req, res) => {
 // Get notification settings
 const getNotificationSettings = async (req, res) => {
   try {
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     res.json(settings.notifications);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching notification settings', error: error.message });
@@ -150,7 +150,7 @@ const updateNotificationSettings = async (req, res) => {
   try {
     const notificationUpdates = req.body;
     
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     Object.assign(settings.notifications, notificationUpdates);
     
     await settings.save();
@@ -167,7 +167,7 @@ const updateNotificationSettings = async (req, res) => {
 // Get color scheme
 const getColorScheme = async (req, res) => {
   try {
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     res.json(settings.colorScheme);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching color scheme', error: error.message });
@@ -179,7 +179,7 @@ const updateColorScheme = async (req, res) => {
   try {
     const colorUpdates = req.body;
     
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     Object.assign(settings.colorScheme, colorUpdates);
     
     await settings.save();
@@ -196,9 +196,9 @@ const updateColorScheme = async (req, res) => {
 // Reset settings to defaults
 const resetSettings = async (req, res) => {
   try {
-    // Delete existing settings and create new default ones
-    await UserSettings.deleteMany({});
-    const settings = await UserSettings.getSettings();
+    // Delete user's existing settings and create new default ones
+    await UserSettings.deleteOne({ user: req.user._id });
+    const settings = await UserSettings.getSettings(req.user._id);
 
     res.json({
       message: 'Settings reset to defaults successfully',
@@ -212,12 +212,13 @@ const resetSettings = async (req, res) => {
 // Export settings
 const exportSettings = async (req, res) => {
   try {
-    const settings = await UserSettings.getSettings();
+    const settings = await UserSettings.getSettings(req.user._id);
     
     // Remove MongoDB-specific fields for clean export
     const exportData = settings.toObject();
     delete exportData._id;
     delete exportData.__v;
+    delete exportData.user;
     delete exportData.createdAt;
     delete exportData.updatedAt;
 
@@ -239,11 +240,16 @@ const importSettings = async (req, res) => {
       return res.status(400).json({ message: 'Valid settings object is required' });
     }
 
-    let settings = await UserSettings.getSettings();
+    let settings = await UserSettings.getSettings(req.user._id);
     
-    // Merge imported settings with existing ones
+    // Merge imported settings with existing ones (exclude sensitive fields)
     Object.keys(importedSettings).forEach(key => {
-      if (importedSettings[key] !== undefined && key !== '_id' && key !== '__v') {
+      if (importedSettings[key] !== undefined && 
+          key !== '_id' && 
+          key !== '__v' && 
+          key !== 'user' && 
+          key !== 'createdAt' && 
+          key !== 'updatedAt') {
         settings[key] = importedSettings[key];
       }
     });

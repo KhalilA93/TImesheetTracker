@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSettings, updateSettings } from '../../store/actions/settingsActions';
 import { ThemeManager } from '../../utils/themeManager';
+import { settingsApi } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import './Settings.css';
 
 const Settings = () => {
   const dispatch = useDispatch();
+  const { user } = useAuth();
   const { settings, loading, error } = useSelector(state => state.settings);
-    // Separate state for theme (client-side only)
+  
+  // Separate state for theme (account-bound)
   const [themeData, setThemeData] = useState(ThemeManager.defaultTheme);
   
   // State for other settings (backend)
@@ -28,36 +32,59 @@ const Settings = () => {
       desktop: true
     }
   });
-  // Load theme on component mount
+  // Load theme on component mount with user context
   useEffect(() => {
-    const loadedTheme = ThemeManager.loadTheme();
-    setThemeData(loadedTheme);
-    ThemeManager.applyTheme(loadedTheme);
-  }, []);
+    if (user && user._id) {
+      const loadedTheme = ThemeManager.loadTheme(null, user._id);
+      setThemeData(loadedTheme);
+      ThemeManager.applyTheme(loadedTheme);
+    }
+  }, [user]);
 
   // Load backend settings
   useEffect(() => {
     dispatch(fetchSettings());
   }, [dispatch]);
 
-  // Update formData when backend settings load (excluding theme)
+  // Update formData when backend settings load (including theme sync)
   useEffect(() => {
-    if (settings) {
-      // Remove theme from backend settings if it exists
+    if (settings && user && user._id) {
+      // Extract theme and other settings
       const { theme, ...otherSettings } = settings;
+      
+      // Update form data with non-theme settings
       setFormData(prev => ({
         ...prev,
         ...otherSettings
       }));
+      
+      // If backend has theme data, sync it with local theme using user ID
+      if (theme) {
+        const mergedTheme = ThemeManager.loadTheme(theme, user._id);
+        setThemeData(mergedTheme);
+        ThemeManager.applyTheme(mergedTheme);
+      }
     }
-  }, [settings]);
+  }, [settings, user]);
 
-  // Handle theme changes
-  const handleThemeChange = (property, value) => {
+  // Handle theme changes (save to both localStorage and backend)
+  const handleThemeChange = async (property, value) => {
     const newTheme = { ...themeData, [property]: value };
     setThemeData(newTheme);
-    ThemeManager.saveTheme(newTheme);
+    
+    // Save with user-specific key
+    if (user && user._id) {
+      ThemeManager.saveTheme(newTheme, user._id);
+    }
     ThemeManager.applyTheme(newTheme);
+    
+    // Also save to backend for account-bound settings
+    try {
+      await settingsApi.updateSettings({ theme: newTheme });
+    } catch (error) {
+      console.error('Error saving theme to account:', error);
+      // Theme still works locally even if backend save fails
+    }
   };
 
   // Handle regular form input changes
