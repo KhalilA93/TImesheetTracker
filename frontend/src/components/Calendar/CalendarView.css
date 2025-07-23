@@ -89,7 +89,7 @@
 .calendar-label {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--text-primary);
   min-width: 200px;
   text-align: center;
 }
@@ -109,14 +109,14 @@
   padding: 8px 16px;
   border-radius: 4px;
   font-weight: 600;
-  color: #6c757d;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .view-buttons button:hover {
-  background: #f8f9fa;
-  color: #495057;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .view-buttons button.active {
@@ -229,7 +229,7 @@
   align-items: center;
   height: 400px;
   font-size: 1.2rem;
-  color: #6c757d;
+  color: var(--text-secondary);
 }
 
 .loading-spinner::before {

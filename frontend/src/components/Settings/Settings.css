@@ -18,18 +18,14 @@
 }
 
 .settings-header h1 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
   font-size: 3rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .settings-header p {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 1.2rem;
   margin: 0;
   font-weight: 500;
@@ -69,7 +65,7 @@
 }
 
 .settings-section h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0 0 25px 0;
   font-size: 1.6rem;
   font-weight: 700;
@@ -89,7 +85,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   letter-spacing: 0.3px;
 }
@@ -103,8 +99,8 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
-  background: #f8f9fa;
-  color: #495057;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -153,7 +149,7 @@
 .color-item label {
   margin-bottom: 12px;
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   text-align: center;
   font-size: 0.9rem;
   text-transform: capitalize;
@@ -187,8 +183,8 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: all 0.3s ease;
-  color: #495057;
-  background: #f8f9fa;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
   border: 2px solid transparent;
   position: relative;
 }
@@ -236,7 +232,7 @@
 }
 
 .theme-preview-text {
-  color: #495057;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 1rem;
 }
@@ -280,7 +276,7 @@
   display: block;
   margin-bottom: 15px;
   font-weight: 700;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
