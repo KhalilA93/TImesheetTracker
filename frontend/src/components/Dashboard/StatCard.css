@@ -1,11 +1,12 @@
 /* Stat Card */
 .stat-card {
   background: var(--bg-primary);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 30px;
   box-shadow: 0 4px 20px var(--shadow-light);
-  border-top: 4px solid var(--accent-color);
+  border-top: 6px solid var(--accent-color);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+  min-height: 180px;
 }
 
 .stat-card:hover {
@@ -16,18 +17,18 @@
 .stat-header {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .stat-icon {
-  font-size: 1.5rem;
-  margin-right: 10px;
+  font-size: 2rem;
+  margin-right: 12px;
 }
 
 .stat-title {
   color: var(--text-primary);
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
@@ -45,13 +46,13 @@
 
 .stat-label {
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 4px;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -59,23 +60,24 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .stat-card {
-    padding: 15px;
+    padding: 20px;
+    min-height: 160px;
   }
   
   .stat-icon {
-    font-size: 1.3rem;
+    font-size: 1.7rem;
   }
   
   .stat-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   
   .stat-value {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
   
   .stat-content {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 }
