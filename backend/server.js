@@ -17,8 +17,11 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Allow any vercel.app domain
-    if (origin.includes('.vercel.app')) {
+    // Allow production domains (to be configured per hosting service)
+    const allowedDomains = process.env.ALLOWED_ORIGINS ? 
+      process.env.ALLOWED_ORIGINS.split(',') : [];
+    
+    if (allowedDomains.some(domain => origin.includes(domain))) {
       return callback(null, true);
     }
     

@@ -1,13 +1,8 @@
 import axios from 'axios';
 
-// Dynamic API URL detection
+// API URL configuration for any hosting service
 const getAPIBaseURL = () => {
-  // In production on Vercel, use the current domain
-  if (process.env.NODE_ENV === 'production' && window.location.hostname.includes('vercel.app')) {
-    return `${window.location.protocol}//${window.location.host}/api`;
-  }
-  
-  // Use environment variable if set
+  // Use environment variable if set (recommended for production)
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }
@@ -18,13 +13,14 @@ const getAPIBaseURL = () => {
 
 const API_BASE_URL = getAPIBaseURL();
 
-// Debug logging
-console.log('🔧 API Configuration:', {
-  NODE_ENV: process.env.NODE_ENV,
-  hostname: window.location.hostname,
-  API_BASE_URL,
-  REACT_APP_API_URL: process.env.REACT_APP_API_URL
-});
+// Debug logging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 API Configuration:', {
+    NODE_ENV: process.env.NODE_ENV,
+    API_BASE_URL,
+    REACT_APP_API_URL: process.env.REACT_APP_API_URL
+  });
+}
 
 // Create axios instance with default config
 const api = axios.create({
