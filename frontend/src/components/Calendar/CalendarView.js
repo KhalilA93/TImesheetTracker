@@ -112,13 +112,12 @@ const CalendarView = () => {
   // Handle saving timesheet entry
   const handleSaveEntry = async (entryData) => {
     try {
-      let savedEntry;
       if (selectedEvent) {
         // Update existing entry
-        savedEntry = await dispatch(updateEntry(selectedEvent.id, entryData));
+        await dispatch(updateEntry(selectedEvent.id, entryData));
       } else {
         // Create new entry - this will automatically add to calendar events via the action
-        savedEntry = await dispatch(createEntry(entryData));
+        await dispatch(createEntry(entryData));
       }
       
       // Close modal

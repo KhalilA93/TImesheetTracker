@@ -35,7 +35,7 @@ function AppContent() {
   // Apply user's theme settings when loaded from backend
   useEffect(() => {
     if (settings && settings.theme && user && user._id) {
-      const mergedTheme = ThemeManager.initializeForUser(user._id, settings.theme);
+      ThemeManager.initializeForUser(user._id, settings.theme);
     }
   }, [settings, user]);
 
