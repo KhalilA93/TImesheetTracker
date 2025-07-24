@@ -12,6 +12,7 @@ app.use(cors({
     'http://localhost:3000', 
     'http://127.0.0.1:3000',
     'https://time-sheet-tracker-k4tkplpcc-khalila93s-projects.vercel.app',
+    'https://time-sheet-tracker-ip4vy1c0j-khalila93s-projects.vercel.app',
     /https:\/\/.*\.vercel\.app$/
   ],
   credentials: true
@@ -46,6 +47,17 @@ app.use('/api/timesheet-entries', require('./routes/timesheetEntries'));
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongoConnected: mongoose.connection.readyState === 1,
+    jwtConfigured: !!process.env.JWT_SECRET
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'TimeSheet Tracker API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
