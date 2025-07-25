@@ -8,26 +8,11 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost for development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return callback(null, true);
-    }
-    
-    // Allow production domains (to be configured per hosting service)
-    const allowedDomains = process.env.ALLOWED_ORIGINS ? 
-      process.env.ALLOWED_ORIGINS.split(',') : [];
-    
-    if (allowedDomains.some(domain => origin.includes(domain))) {
-      return callback(null, true);
-    }
-    
-    // Reject other origins
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: [
+    'http://localhost:3000',
+    'https://timesheettracker-frontend.onrender.com',
+    'https://timesheettrackerbackend.onrender.com'
+  ],
   credentials: true
 }));
 app.use(express.json());
