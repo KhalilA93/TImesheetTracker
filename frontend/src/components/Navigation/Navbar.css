@@ -1,3 +1,6 @@
+/* Import Professional Font */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+
 /* Navbar Container */
 .navbar {
   background: var(--accent-color);
@@ -5,8 +8,9 @@
   box-shadow: 0 2px 10px var(--shadow-medium);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
   transition: background 0.3s ease, box-shadow 0.3s ease;
+  overflow: visible; /* Allow dropdown to show outside navbar */
 }
 
 .nav-container {
@@ -19,13 +23,94 @@
   height: 70px;
 }
 
-/* Logo */
+/* Logo Container with Glow Effect */
+.nav-logo {
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.nav-logo:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Logo with Shine Animation */
 .nav-logo h2 {
+  font-family: 'Orbitron', monospace;
   color: white;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.2);
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #f0f8ff 25%,
+    #ffffff 50%,
+    #e6f3ff 75%,
+    #ffffff 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+  position: relative;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.nav-logo h2:hover {
+  transform: scale(1.05);
+  animation-duration: 1.5s;
+}
+
+/* Shine Animation Keyframes */
+@keyframes shine {
+  0% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Subtle Pulse Animation for Logo Container */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.nav-logo {
+  animation: pulse 4s ease-in-out infinite;
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (-webkit-background-clip: text) {
+  .nav-logo h2 {
+    color: white;
+    background: none;
+    -webkit-text-fill-color: unset;
+  }
 }
 
 /* Navigation Menu */
@@ -98,6 +183,7 @@
 .nav-user {
   position: relative;
   margin-left: 20px;
+  z-index: 9999;
 }
 
 .user-avatar {
@@ -122,30 +208,35 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px var(--shadow-dark);
   min-width: 200px;
-  z-index: 1000;
+  z-index: 9999;
   margin-top: 8px;
   padding: 10px 0;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .user-info {
   padding: 10px 15px;
-  border-bottom: 1px solid #e1e5e9;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .user-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .user-email {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 12px;
   margin-top: 2px;
+  transition: color 0.3s ease;
 }
 
 .logout-btn {
@@ -156,13 +247,13 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #dc2626;
+  color: var(--danger-color);
   font-size: 14px;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.3s ease;
 }
 
 .logout-btn:hover {
-  background: #fef2f2;
+  background: var(--bg-secondary);
 }
 
 /* Mobile Responsive */
