@@ -287,11 +287,14 @@ const CalendarView = () => {
           toolbar: CustomToolbar
         }}
         views={[Views.DAY, Views.WEEK, Views.MONTH]}
-        step={15}
-        timeslots={4}
-        defaultView={Views.WEEK}
-        min={new Date(2025, 0, 1, 6, 0)} // 6 AM
-        max={new Date(2025, 0, 1, 22, 0)} // 10 PM
+  step={15}
+  timeslots={4}
+  defaultView={Views.WEEK}
+  // Show full 24 hours in day/week views
+  // Set min to 00:00 and max to 23:59:59 on the same day to avoid issues
+  // with react-big-calendar interpreting different dates.
+  min={new Date(2025, 0, 1, 0, 0)} // 12:00 AM
+  max={new Date(2025, 0, 1, 23, 59, 59)} // 11:59:59 PM
         formats={{
           timeGutterFormat: 'HH:mm',
           eventTimeRangeFormat: ({ start, end }) => {
