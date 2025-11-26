@@ -12,6 +12,41 @@ const Dashboard = () => {
     dispatch(fetchDashboardOverview());
   }, [dispatch]);
 
+  // Helpers to compute projected income based on pace so far
+  const getDaysElapsedInWeek = () => {
+    const today = new Date();
+    // JS getDay(): 0 (Sun) - 6 (Sat). Treat week as starting Sunday.
+    return Math.max(1, today.getDay() + 1);
+  };
+
+  const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
+  const projectedWeekly = () => {
+    const weekPay = overview?.weekPay || 0;
+    const weekHours = overview?.weekHours || 0;
+    const daysElapsed = getDaysElapsedInWeek();
+    const projPay = (weekPay / daysElapsed) * 7;
+    const projHours = (weekHours / daysElapsed) * 7;
+    return {
+      pay: Number.isFinite(projPay) ? Math.round(projPay * 100) / 100 : 0,
+      hours: Number.isFinite(projHours) ? Math.round(projHours * 10) / 10 : 0
+    };
+  };
+
+  const projectedMonthly = () => {
+    const monthPay = overview?.monthPay || 0;
+    const monthHours = overview?.monthHours || 0;
+    const today = new Date();
+    const daysElapsed = Math.max(1, today.getDate());
+    const daysInMonth = getDaysInMonth(today);
+    const projPay = (monthPay / daysElapsed) * daysInMonth;
+    const projHours = (monthHours / daysElapsed) * daysInMonth;
+    return {
+      pay: Number.isFinite(projPay) ? Math.round(projPay * 100) / 100 : 0,
+      hours: Number.isFinite(projHours) ? Math.round(projHours * 10) / 10 : 0
+    };
+  };
+
   if (loading) {
     return <div className="loading-spinner">Loading dashboard...</div>;
   }
@@ -50,12 +85,20 @@ const Dashboard = () => {
           icon="💰"
           color="#ffc107"
         />
+        {/* Projected income based on current pace */}
         <StatCard
-          title="Weekly Average"
-          hours={(overview?.weekHours || 0) / 7}
-          pay={(overview?.weekPay || 0) / 7}
-          icon="⚡"
+          title="Projected Week"
+          hours={projectedWeekly().hours}
+          pay={projectedWeekly().pay}
+          icon="📈"
           color="#17a2b8"
+        />
+        <StatCard
+          title="Projected Month"
+          hours={projectedMonthly().hours}
+          pay={projectedMonthly().pay}
+          icon="🔮"
+          color="#6f42c1"
         />
       </div>
     </div>
