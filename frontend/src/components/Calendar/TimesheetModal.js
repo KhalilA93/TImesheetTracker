@@ -14,7 +14,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
     project: '',
     category: 'regular',
     payRateOverride: '',
-    status: 'confirmed'
+    status: 'draft'
   });
 
   const [calculatedHours, setCalculatedHours] = useState(0);
@@ -24,7 +24,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
   useEffect(() => {
     if (event) {
       // Editing existing event - get data from event object
-      setFormData({
+        setFormData({
         date: moment(event.start).format('YYYY-MM-DD'),
         startTime: moment(event.start).format('HH:mm'),
         endTime: moment(event.end).format('HH:mm'),
@@ -32,7 +32,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
         project: event.project || '',
         category: event.category || 'regular',
         payRateOverride: event.payRateOverride || '',
-        status: event.status || 'confirmed'
+        status: event.status || 'draft'
       });
     } else if (slot) {
       // Creating new event from slot selection
@@ -44,7 +44,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
         project: '',
         category: 'regular',
         payRateOverride: '',
-        status: 'confirmed'
+        status: 'draft'
       });
     } else {
       // Default empty form
@@ -56,7 +56,7 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
         project: '',
         category: 'regular',
         payRateOverride: '',
-        status: 'confirmed'
+        status: 'draft'
       });
     }
   }, [event, slot]);
@@ -112,12 +112,23 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
       description: formData.description,
       project: formData.project,
       category: formData.category,
+      // status will be set below: prefer user selection but auto-approve if end time passed
       status: formData.status
     };
 
     // Add pay rate override if specified
     if (formData.payRateOverride) {
       entryData.payRateOverride = parseFloat(formData.payRateOverride);
+    }
+
+    // Auto-mark approved if end time already passed
+    try {
+      const endDateObj = new Date(endDateTime);
+      if (!isNaN(endDateObj.getTime()) && endDateObj <= new Date()) {
+        entryData.status = 'approved';
+      }
+    } catch (err) {
+      // ignore
     }
 
     onSave(entryData);
@@ -247,8 +258,6 @@ const TimesheetModal = ({ isOpen, onClose, onSave, onDelete, event, slot }) => {
                 onChange={handleInputChange}
               >
                 <option value="draft">Draft</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="submitted">Submitted</option>
                 <option value="approved">Approved</option>
               </select>
             </div>

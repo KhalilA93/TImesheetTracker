@@ -5,7 +5,27 @@ export const fetchEntries = () => async (dispatch) => {
   dispatch({ type: 'TIMESHEET_LOADING' });
   try {
     const response = await timesheetApi.getEntries();
-    dispatch({ type: 'FETCH_ENTRIES_SUCCESS', payload: response.data });
+    // Normalize entries and auto-mark approved if end time has passed
+    const raw = response.data;
+    let entries = raw;
+    if (raw && !Array.isArray(raw) && Array.isArray(raw.entries)) {
+      entries = raw.entries;
+    }
+
+    const now = new Date();
+    if (Array.isArray(entries)) {
+      entries = entries.map(e => {
+        const endVal = e.endTime || e.end || e.endDate || e.end_time;
+        const endDate = endVal ? new Date(endVal) : null;
+        const statusDefault = e.status || 'draft';
+        if (endDate && !isNaN(endDate.getTime()) && endDate <= now) {
+          return { ...e, status: 'approved' };
+        }
+        return { ...e, status: statusDefault };
+      });
+    }
+
+    dispatch({ type: 'FETCH_ENTRIES_SUCCESS', payload: entries });
   } catch (error) {
     dispatch({ type: 'TIMESHEET_ERROR', payload: error.message });
   }
@@ -31,7 +51,7 @@ export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
       }
       
       // Ensure all required fields are present with defaults
-      return {
+      const base = {
         ...event,
         start: startDate,
         end: endDate,
@@ -39,10 +59,18 @@ export const fetchCalendarEvents = (startDate, endDate) => async (dispatch) => {
         hoursWorked: event.hoursWorked || 0,
         calculatedPay: event.calculatedPay || 0,
         category: event.category || 'regular',
-        status: event.status || 'confirmed',
+        status: event.status || 'draft',
         project: event.project || '',
         description: event.description || ''
       };
+
+      // Auto-approve if end has passed
+      const now = new Date();
+      if (endDate && !isNaN(endDate.getTime()) && endDate <= now) {
+        base.status = 'approved';
+      }
+
+      return base;
     }).filter(Boolean); // Remove null events
     
     dispatch({ type: 'FETCH_CALENDAR_EVENTS_SUCCESS', payload: events });
@@ -75,12 +103,15 @@ export const createEntry = (entry) => async (dispatch) => {
           hoursWorked: newEntry.hoursWorked || 0,
           calculatedPay: newEntry.calculatedPay || 0,
           category: newEntry.category || 'regular',
-          status: newEntry.status || 'confirmed',
+          status: newEntry.status || 'draft',
           project: newEntry.project || '',
           description: newEntry.description || '',
           payRateOverride: newEntry.payRateOverride
         };
-        
+        // Auto-approve if end time already passed
+        if (endDate <= new Date()) {
+          calendarEvent.status = 'approved';
+        }
         // Add to calendar events
         dispatch({ type: 'ADD_CALENDAR_EVENT', payload: calendarEvent });
       }

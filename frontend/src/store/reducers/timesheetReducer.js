@@ -20,9 +20,10 @@ const timesheetReducer = (state = initialState, action) => {
         error: null
       };
     case 'FETCH_ENTRIES_SUCCESS':
+      // Ensure entries is always an array (API may return { entries: [...] } or an array)
       return {
         ...state,
-        entries: action.payload,
+        entries: Array.isArray(action.payload) ? action.payload : (action.payload && Array.isArray(action.payload.entries) ? action.payload.entries : []),
         loading: false,
         error: null
       };
